@@ -1,0 +1,24 @@
+﻿# deps
+node_modules
+
+# build
+dist
+build
+coverage
+
+# env & local
+.env
+.env.*
+*.local
+
+# editors
+.vscode/*
+!.vscode/extensions.json
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# misc
+.DS_Store
