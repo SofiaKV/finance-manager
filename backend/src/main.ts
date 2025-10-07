@@ -13,7 +13,17 @@ async function bootstrap() {
     new FastifyAdapter(),
   );
   app.setGlobalPrefix('api');
-  await app.listen(3000);
+
+  // Basic CORS so the Vite dev server (default :5173) can call the API
+  app.enableCors({
+    origin: ['http://localhost:5173'],
+    credentials: true,
+  });
+
+  const port = Number(process.env.PORT) || 3000;
+  await app.listen({ port, host: '0.0.0.0' });
+  // eslint-disable-next-line no-console
+  console.log(`Backend listening on http://localhost:${port}`);
 }
 bootstrap().catch((err) => {
   console.error(err);
