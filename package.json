@@ -5,6 +5,7 @@
   "description": "",
   "packageManager": "pnpm@10.18.0",
   "scripts": {
+    "prepare": "husky",
     "format:check": "pnpm -r format:check",
     "format:fix": "pnpm -r format:fix",
     "lint:check": "pnpm -r lint:check",
@@ -21,10 +22,18 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
     "globals": "^16.4.0",
+    "husky": "^9.1.6",
     "jest": "^30.2.0",
     "prettier": "^3.6.2",
     "typescript": "^5.6.3",
     "typescript-eslint": "^8.46.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "pnpm format:check",
+      "pnpm lint:check",
+      "pnpm build"
+    ]
   },
   "dependencies": {
     "@types/node": "^22.18.8",
