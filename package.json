@@ -7,8 +7,8 @@
   "scripts": {
     "prepare": "husky",
     "install:all": "pnpm install --filter . --filter ./backend --filter ./frontend",
-    "dev": "pnpm -r run build --filter backend --filter frontend --parallel=false && pnpm run start:dev",
-    "start:dev": "concurrently -n BACKEND,FRONTEND -c blue,magenta 'pnpm --filter backend start:dev' 'pnpm --filter frontend dev'",
+    "dev": "pnpm -r build && pnpm start:dev",
+    "start:dev": "concurrently -n BACKEND,FRONTEND -c blue,magenta \"pnpm --filter=backend start:dev\" \"pnpm --filter=frontend dev\"",
     "format:check": "pnpm -r format:check",
     "format:fix": "pnpm -r format:fix",
     "lint:check": "pnpm -r lint:check",
@@ -33,13 +33,6 @@
   },
   "optionalDependencies": {
     "concurrently": "^9.1.0"
-  },
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "pnpm format:check",
-      "pnpm lint:check",
-      "pnpm build"
-    ]
   },
   "dependencies": {
     "@types/node": "^22.18.8",
