@@ -38,3 +38,15 @@
 	pnpm start:dev  
 4. Відкрийте у браузері: http://localhost:5173  
 	Запити до /api/* будуть проксійовані на бекенд http://localhost:3000/api/*  
+
+### Корисні скрипти
+pnpm dev – підготує білди і запустить одночасно dev сервери  
+pnpm --filter backend start:dev – лише бекенд з перезапусками  
+pnpm --filter frontend dev – лише фронтенд  
+pnpm test – запустить тести у всіх пакетах  
+pnpm format:fix / lint:fix – автоформат та ESLint виправлення  
+
+### Архітектура
+Монорепозиторій pnpm: `backend` (NestJS 11 + Fastify) та `frontend` (React 19 + Vite).  
+Глобальний префікс API: /api  
+У дев-режимі ввімкнено CORS та Vite proxy.  
