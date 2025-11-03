@@ -11,6 +11,9 @@ coverage
 .env.*
 *.local
 
+# data storage (user data)
+backend/data-storage/*.json
+
 # editors
 .vscode/*
 !.vscode/extensions.json

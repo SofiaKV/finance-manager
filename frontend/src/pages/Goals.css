@@ -1,0 +1,102 @@
+.goals-page {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.goals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.goal-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.goal-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.goal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.goal-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.25rem;
+}
+
+.goal-amounts {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.amount-current,
+.amount-target {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.amount-current .label,
+.amount-target .label {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.amount-current .value,
+.amount-target .value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.goal-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.percentage {
+  font-weight: 600;
+  color: #667eea;
+}
+
+.days-left.urgent {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.btn-add-funds {
+  width: 100%;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.btn-add-funds:hover {
+  transform: translateY(-2px);
+}
+
+.goal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
