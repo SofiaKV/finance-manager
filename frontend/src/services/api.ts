@@ -86,7 +86,10 @@ class ApiClient {
   }
 
   async logout(): Promise<void> {
-    await this.request('/auth/logout', { method: 'POST' });
+    await this.request('/auth/logout', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
     this.clearToken();
   }
 
@@ -139,10 +142,12 @@ class ApiClient {
   }
 
   async deleteTransaction(id: string): Promise<void> {
-    await this.request(`/transactions/${id}`, { method: 'DELETE' });
+    await this.request(`/transactions/${id}`, {
+      method: 'DELETE',
+      body: JSON.stringify({}),
+    });
   }
 
-  // Budget methods
   async getBudgets(): Promise<Budget[]> {
     return this.request<Budget[]>('/budgets');
   }
@@ -193,10 +198,12 @@ class ApiClient {
   }
 
   async deleteGoal(id: string): Promise<void> {
-    await this.request(`/goals/${id}`, { method: 'DELETE' });
+    await this.request<void>(`/goals/${id}`, {
+      method: 'DELETE',
+      body: JSON.stringify({}),
+    });
   }
 
-  // Reports methods
   async getDashboard(filters?: {
     startDate?: Date;
     endDate?: Date;

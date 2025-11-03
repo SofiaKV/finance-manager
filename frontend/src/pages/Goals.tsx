@@ -163,7 +163,10 @@ function Goals() {
                   <div className="amount-current">
                     <span className="label">Накопичено:</span>
                     <span className="value">
-                      {goal.currentAmount.toLocaleString('uk-UA')} ₴
+                      {goal.currentAmount
+                        ? goal.currentAmount.toLocaleString('uk-UA')
+                        : '0'}{' '}
+                      ₴
                     </span>
                   </div>
                   <div className="amount-target">
