@@ -18,6 +18,7 @@ function Transactions() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState<TransactionType | 'ALL'>('ALL');
+  const [categoryFilter, setCategoryFilter] = useState<string | 'ALL'>('ALL');
 
   const [formData, setFormData] = useState({
     type: TransactionType.EXPENSE,
@@ -59,7 +60,7 @@ function Transactions() {
       };
       await apiClient.createTransaction(dto);
       await loadData();
-      await refreshProfile(); // Refresh user balance
+      await refreshProfile();
       setShowForm(false);
       setFormData({
         type: TransactionType.EXPENSE,
@@ -78,16 +79,19 @@ function Transactions() {
       try {
         await apiClient.deleteTransaction(id);
         await loadData();
-        await refreshProfile(); // Refresh user balance
+        await refreshProfile();
       } catch (error) {
         console.error('Failed to delete transaction:', error);
       }
     }
   };
 
-  const filteredTransactions = transactions.filter((txn) =>
-    filter === 'ALL' ? true : txn.type === filter,
-  );
+  const filteredTransactions = transactions.filter((txn) => {
+    const typeMatches = filter === 'ALL' || txn.type === filter;
+    const categoryMatches =
+      categoryFilter === 'ALL' || txn.category === categoryFilter;
+    return typeMatches && categoryMatches;
+  });
 
   const filterIndex =
     filter === 'ALL' ? 0 : filter === TransactionType.INCOME ? 1 : 2;
@@ -96,6 +100,10 @@ function Transactions() {
     formData.type === TransactionType.INCOME
       ? cat.type === TransactionType.INCOME
       : cat.type === TransactionType.EXPENSE,
+  );
+
+  const uniqueCategories = categories.filter(
+    (cat, index, self) => index === self.findIndex((c) => c.name === cat.name),
   );
 
   if (loading) {
@@ -224,6 +232,22 @@ function Transactions() {
         >
           Витрати
         </button>
+      </div>
+
+      {/* Category Filter */}
+      <div className="category-filter">
+        <label>Фільтрувати по категорії</label>
+        <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+        >
+          <option value="ALL">Всі категорії</option>
+          {uniqueCategories.map((cat) => (
+            <option key={cat.id} value={cat.name}>
+              {cat.icon} {cat.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="transactions-list">

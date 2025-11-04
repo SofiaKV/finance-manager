@@ -1,7 +1,6 @@
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import './Layout.css';
-import { Button } from './ui/button';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 function Layout() {
@@ -59,9 +58,7 @@ function Layout() {
   return (
     <div className="layout">
       <nav className="navbar">
-        <div className="nav-brand">
-          <h2>💰 Фінансовий Менеджер</h2>
-        </div>
+        <div className="nav-brand"></div>
         <div className="nav-links sliding-nav" ref={containerRef}>
           <div
             className="nav-indicator"
@@ -88,9 +85,9 @@ function Layout() {
           <span className="user-balance">
             Баланс: {user?.balance?.toLocaleString('uk-UA')} ₴
           </span>
-          <Button onClick={handleLogout} size="sm">
+          <button onClick={handleLogout} className="btn-small">
             Вийти
-          </Button>
+          </button>
         </div>
       </nav>
       <main className="main-content">

@@ -20,20 +20,29 @@ import { getTransactionsByUserId } from '../data/transactions.data';
 
 @Injectable()
 export class AuthService {
+  private readonly emailRegex =
+    /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|net|org|co|edu|gov|mil|info|io|co\.uk|ua)$/;
+
+  private validateEmail(email: string): boolean {
+    return this.emailRegex.test(email);
+  }
+
   async register(registerDto: RegisterDto): Promise<AuthResponse> {
     const { email, password, name } = registerDto;
 
-    // Check if user already exists
+    if (!this.validateEmail(email)) {
+      throw new Error('Invalid email format');
+    }
+
     const existingUser = findUserByEmail(email);
     if (existingUser) {
       throw new Error('User with this email already exists');
     }
 
-    // Create new user
     const newUser: User = {
       id: `user-${Date.now()}`,
       email,
-      password, // In real app, hash this
+      password,
       name,
       createdAt: new Date(),
     };
@@ -41,7 +50,7 @@ export class AuthService {
     addUser(newUser);
 
     const userProfile = this.createUserProfile(newUser);
-    const token = newUser.id; // Token is just the user ID
+    const token = newUser.id;
 
     return {
       user: userProfile,
@@ -58,7 +67,7 @@ export class AuthService {
     }
 
     const userProfile = this.createUserProfile(user);
-    const token = user.id; // Token is just the user ID
+    const token = user.id;
 
     return {
       user: userProfile,
@@ -84,15 +93,17 @@ export class AuthService {
       return null;
     }
 
-    // Check if email is already taken
     if (updateProfileDto.email && updateProfileDto.email !== user.email) {
+      if (!this.validateEmail(updateProfileDto.email)) {
+        throw new Error('Invalid email format');
+      }
+
       const existingUser = findUserByEmail(updateProfileDto.email);
       if (existingUser && existingUser.id !== userId) {
         throw new Error('Email already in use');
       }
     }
 
-    // Update user data
     const updates: Partial<User> = {};
     if (updateProfileDto.name) updates.name = updateProfileDto.name;
     if (updateProfileDto.email) updates.email = updateProfileDto.email;
