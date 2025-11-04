@@ -4,16 +4,17 @@
 }
 
 .profile-page h1 {
-  margin-bottom: 2rem;
-  color: #333;
+  margin-bottom: 1.25rem;
+  color: var(--text);
   text-align: center;
 }
 
 .profile-card {
-  background: white;
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .profile-avatar {
@@ -26,14 +27,13 @@
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #b399cc 100%);
+  background: #111;
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 3rem;
   font-weight: 700;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 .profile-info {
@@ -53,23 +53,23 @@
 
 .info-label {
   font-weight: 600;
-  color: #666;
+  color: var(--muted);
 }
 
 .info-value {
   font-size: 1.1rem;
-  color: #333;
+  color: var(--text);
 }
 
 .info-value.balance {
-  font-size: 1.5rem; 
+  font-size: 1.5rem;
   font-weight: 700;
-  color: #667eea;
-  letter-spacing: 0.05em; 
-  line-height: 1.5; 
-  display: block; 
+  color: #111;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+  display: block;
   text-overflow: ellipsis;
-  overflow: hidden; 
+  overflow: hidden;
   white-space: nowrap;
 }
 
@@ -87,19 +87,19 @@
 
 .btn-secondary {
   flex: 1;
-  padding: 1rem;
-  background: #e5e7eb;
-  color: #333;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
+  padding: 0.8rem 1rem;
+  background: #f3f4f6;
+  color: #111;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: background 0.2s;
 }
 
 .btn-secondary:hover {
-  background: #d1d5db;
+  background: #e5e7eb;
 }
 
 .success-message {

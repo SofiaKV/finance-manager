@@ -3,30 +3,31 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg);
   padding: 2rem;
 }
 
 .auth-card {
-  background: white;
-  border-radius: 12px;
-  padding: 3rem;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  max-width: 450px;
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 2rem;
+  box-shadow: var(--shadow-sm);
+  max-width: 420px;
   width: 100%;
 }
 
 .auth-card h1 {
   margin: 0 0 0.5rem;
-  color: #333;
-  font-size: 2rem;
+  color: var(--text);
+  font-size: 1.5rem;
   text-align: center;
 }
 
 .auth-subtitle {
   text-align: center;
-  color: #666;
-  margin: 0 0 2rem;
+  color: var(--muted);
+  margin: 0 0 1.5rem;
 }
 
 .error-message {
@@ -52,44 +53,24 @@
 
 .form-group label {
   font-weight: 600;
-  color: #333;
+  color: var(--text);
   font-size: 0.95rem;
 }
 
 .form-group input {
   padding: 0.75rem;
-  border: 2px solid #ddd;
-  border-radius: 6px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
   font-size: 1rem;
-  transition: border-color 0.3s;
+  transition: border-color 0.2s;
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #111;
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 1rem;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-}
-
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+/* Use global .btn-primary from index.css */
 
 .auth-link {
   text-align: center;
@@ -98,7 +79,7 @@
 }
 
 .auth-link a {
-  color: #667eea;
+  color: #111;
   text-decoration: none;
   font-weight: 600;
 }

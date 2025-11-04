@@ -5,21 +5,22 @@
 
 .goals-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1.5rem;
 }
 
 .goal-card {
-  background: white;
-  border-radius: 12px;
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s, box-shadow 0.25s;
 }
 
 .goal-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-md);
 }
 
 .goal-header {
@@ -31,8 +32,8 @@
 
 .goal-header h3 {
   margin: 0;
-  color: #333;
-  font-size: 1.25rem;
+  color: var(--text);
+  font-size: 1.1rem;
 }
 
 .goal-amounts {
@@ -58,7 +59,7 @@
 .amount-target .value {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #333;
+  color: var(--text);
 }
 
 .goal-footer {
@@ -71,28 +72,48 @@
 
 .percentage {
   font-weight: 600;
-  color: #667eea;
+  color: var(--primary-1);
 }
 
 .days-left.urgent {
-  color: #ef4444;
+  color: var(--danger-1);
   font-weight: 600;
 }
 
 .btn-add-funds {
   width: 100%;
   padding: 0.75rem;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: #111;
   color: white;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
+  border: 1px solid #111;
+  border-radius: 10px;
+  font-weight: 700;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: background 0.15s, transform 0.15s;
 }
 
 .btn-add-funds:hover {
+  background: #000;
   transform: translateY(-2px);
+}
+
+.add-funds-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--bg);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.add-funds-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.add-funds-actions button {
+  flex: 1;
 }
 
 .goal-form {

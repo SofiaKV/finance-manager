@@ -13,6 +13,7 @@ import {
   updateTransaction,
   deleteTransaction,
 } from '../data/transactions.data';
+import { getGoalsByUserId, updateGoal } from '../data/goals.data';
 
 @Injectable()
 export class TransactionsService {
@@ -110,6 +111,29 @@ export class TransactionsService {
     if (!transaction || transaction.userId !== userId) {
       return false;
     }
+
+    // Check if this is a goal contribution transaction
+    if (
+      transaction.category === 'Ціль' &&
+      transaction.description?.startsWith('Внесок у ціль:')
+    ) {
+      // Extract goal name from description
+      const goalName = transaction.description.replace('Внесок у ціль: ', '');
+
+      // Find the goal by name
+      const goals = getGoalsByUserId(userId);
+      const goal = goals.find((g) => g.name === goalName);
+
+      if (goal) {
+        // Decrease the goal's current amount by the transaction amount
+        const newCurrentAmount = Math.max(
+          0,
+          goal.currentAmount - transaction.amount,
+        );
+        updateGoal(goal.id, { currentAmount: newCurrentAmount });
+      }
+    }
+
     return deleteTransaction(id);
   }
 }

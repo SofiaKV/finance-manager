@@ -12,32 +12,129 @@
 
 .dashboard-header h1 {
   margin: 0;
-  color: #333;
+  color: var(--text);
+  font-size: 1.25rem;
+  font-weight: 700;
 }
 
 .period-selector {
-  display: flex;
-  gap: 0.5rem;
-  background: white;
-  padding: 0.25rem;
-  border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  background: var(--card);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  isolation: isolate;
 }
 
 .period-selector button {
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.9rem;
   border: none;
   background: transparent;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   font-weight: 500;
-  color: #666;
-  transition: all 0.3s;
+  color: var(--muted);
+  transition: color 0.2s;
+  position: relative;
+  z-index: 2;
 }
 
 .period-selector button.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+}
+
+.period-selector .segmented-indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / 3);
+  background: #111;
+  border-radius: 8px;
+  transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+  will-change: transform;
+  z-index: 1;
+}
+
+.period-selector .segmented-indicator.position-0 {
+  transform: translateX(0%);
+}
+
+.period-selector .segmented-indicator.position-1 {
+  transform: translateX(100%);
+}
+
+.period-selector .segmented-indicator.position-2 {
+  transform: translateX(200%);
+}
+
+.charts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.charts-header h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.chart-type-selector {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+  background: var(--card);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  isolation: isolate;
+}
+
+.chart-type-selector button {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--muted);
+  transition: color 0.2s;
+  position: relative;
+  z-index: 2;
+}
+
+.chart-type-selector button.active {
+  color: white;
+}
+
+.chart-type-selector .segmented-indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / 2);
+  background: #111;
+  border-radius: 8px;
+  transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+  z-index: 1;
+}
+
+.chart-type-selector .segmented-indicator.position-0 {
+  transform: translateX(0%);
+}
+
+.chart-type-selector .segmented-indicator.position-1 {
+  transform: translateX(100%);
 }
 
 .stats-grid {
@@ -48,9 +145,9 @@
 }
 
 .stat-card {
-  background: white;
+  background: var(--card);
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 1.25rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
@@ -66,7 +163,7 @@
 }
 
 .stat-label {
-  color: #666;
+  color: var(--muted);
   font-size: 0.9rem;
   margin-bottom: 0.25rem;
 }
@@ -74,7 +171,7 @@
 .stat-value {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #333;
+  color: var(--text);
 }
 
 .stat-card.income .stat-value {
@@ -86,7 +183,7 @@
 }
 
 .stat-card.balance .stat-value {
-  color: #667eea;
+  color: #111;
 }
 
 .charts-row {
@@ -97,28 +194,39 @@
 }
 
 .chart-card {
-  background: white;
+  background: var(--card);
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
 }
 
-.chart-card h2 {
-  margin: 0 0 1rem;
-  color: #333;
-  font-size: 1.25rem;
+.chart-card h2,
+.chart-card h3 {
+  margin: 0 0 1.25rem;
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.chart-card .no-data {
+  color: var(--muted);
+  text-align: center;
+  padding: 3rem 1rem;
+  font-size: 0.9rem;
 }
 
 .recent-transactions {
-  background: white;
+  background: var(--card);
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
 }
 
 .recent-transactions h2 {
   margin: 0 0 1rem;
-  color: #333;
+  color: var(--text);
   font-size: 1.25rem;
 }
 
@@ -148,18 +256,18 @@
 
 .transaction-category {
   font-weight: 600;
-  color: #333;
+  color: var(--text);
   margin-bottom: 0.25rem;
 }
 
 .transaction-description {
-  color: #666;
+  color: var(--muted);
   font-size: 0.9rem;
   margin-bottom: 0.25rem;
 }
 
 .transaction-date {
-  color: #999;
+  color: #9ca3af;
   font-size: 0.85rem;
 }
 
@@ -181,10 +289,10 @@
 .no-data {
   text-align: center;
   padding: 3rem;
-  color: #666;
+  color: var(--muted);
   font-size: 1.1rem;
 }
 
 .error {
-  color: #ef4444;
+  color: var(--danger-2);
 }

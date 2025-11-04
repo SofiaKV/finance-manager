@@ -5,21 +5,22 @@
 
 .budgets-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1.5rem;
 }
 
 .budget-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s, box-shadow 0.25s;
 }
 
 .budget-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-md);
 }
 
 .budget-header {
@@ -31,22 +32,23 @@
 
 .budget-header h3 {
   margin: 0;
-  color: #333;
-  font-size: 1.25rem;
+  color: var(--text);
+  font-size: 1.1rem;
 }
 
 .btn-delete-small {
-  background: #fee;
-  border: none;
+  background: #fff1f2;
+  border: 1px solid rgba(239, 68, 68, 0.2);
   padding: 0.4rem 0.6rem;
-  border-radius: 6px;
+  border-radius: 10px;
   cursor: pointer;
   font-size: 1rem;
-  transition: background 0.2s;
+  transition: background 0.2s, transform 0.15s;
 }
 
 .btn-delete-small:hover {
-  background: #fdd;
+  background: #ffe4e6;
+  transform: translateY(-1px);
 }
 
 .budget-amounts {
@@ -65,43 +67,43 @@
 .amount-spent .label,
 .amount-limit .label {
   font-size: 0.85rem;
-  color: #666;
+  color: var(--muted);
 }
 
 .amount-spent span:last-child,
 .amount-limit span:last-child {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 700;
-  color: #333;
+  color: var(--text);
 }
 
 .amount-spent .over-budget {
-  color: #ef4444;
+  color: var(--danger-1);
 }
 
 .progress-bar {
-  height: 12px;
-  background: #f0f0f0;
-  border-radius: 6px;
+  height: 10px;
+  background: #f3f4f6;
+  border-radius: 999px;
   overflow: hidden;
   margin-bottom: 1rem;
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: #111;
   transition: width 0.3s;
 }
 
 .progress-fill.over {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: var(--danger-1);
 }
 
 .budget-footer {
   display: flex;
   justify-content: space-between;
   font-size: 0.9rem;
-  color: #666;
+  color: var(--muted);
 }
 
 .percentage {
@@ -109,7 +111,8 @@
 }
 
 .remaining {
-  color: #10b981;
+  color: #111;
+  font-weight: 600;
 }
 
 .budget-form {

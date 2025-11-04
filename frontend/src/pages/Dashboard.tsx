@@ -13,22 +13,32 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { apiClient } from '../services/api';
-import { DashboardSummary } from '../types';
+import { DashboardSummary, CategorySummary, TransactionType } from '../types';
 import './Dashboard.css';
 
-const COLORS = [
-  '#667eea',
-  '#764ba2',
-  '#f093fb',
-  '#4facfe',
-  '#43e97b',
-  '#fa709a',
+const EXPENSE_COLORS = [
+  '#ef4444',
+  '#f97316',
+  '#f59e0b',
+  '#eab308',
+  '#84cc16',
+  '#22c55e',
+];
+const INCOME_COLORS = [
+  '#10b981',
+  '#14b8a6',
+  '#06b6d4',
+  '#0ea5e9',
+  '#3b82f6',
+  '#6366f1',
 ];
 
 function Dashboard() {
   const [dashboard, setDashboard] = useState<DashboardSummary | null>(null);
+  const [categories, setCategories] = useState<CategorySummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<'month' | 'year' | 'all'>('month');
+  const [chartType, setChartType] = useState<'expense' | 'income'>('expense');
 
   const getDateFilters = () => {
     const now = new Date();
@@ -52,13 +62,23 @@ function Dashboard() {
       const filters = getDateFilters();
       const data = await apiClient.getDashboard(filters);
       setDashboard(data);
+
+      // Load categories filtered by transaction type
+      const categoryData = await apiClient.getByCategory({
+        ...filters,
+        type:
+          chartType === 'expense'
+            ? TransactionType.EXPENSE
+            : TransactionType.INCOME,
+      });
+      setCategories(categoryData);
     } catch (error) {
       console.error('Failed to load dashboard:', error);
     } finally {
       setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [period]);
+  }, [period, chartType]);
 
   useEffect(() => {
     loadDashboard();
@@ -72,16 +92,22 @@ function Dashboard() {
     return <div className="error">Помилка завантаження даних</div>;
   }
 
-  const pieData = dashboard.byCategory.slice(0, 6).map((cat) => ({
+  const pieData = categories.slice(0, 6).map((cat) => ({
     name: cat.category,
     value: cat.total,
   }));
+
+  const chartColors = chartType === 'expense' ? EXPENSE_COLORS : INCOME_COLORS;
+  const chartIndex = chartType === 'expense' ? 0 : 1;
+
+  const periodIndex = period === 'month' ? 0 : period === 'year' ? 1 : 2;
 
   return (
     <div className="dashboard">
       <div className="dashboard-header">
         <h1>Головна панель</h1>
         <div className="period-selector">
+          <div className={`segmented-indicator position-${periodIndex}`} />
           <button
             className={period === 'month' ? 'active' : ''}
             onClick={() => setPeriod('month')}
@@ -143,9 +169,30 @@ function Dashboard() {
         </div>
       </div>
 
+      <div className="charts-header">
+        <h2>Аналітика по категоріях</h2>
+        <div className="chart-type-selector">
+          <div className={`segmented-indicator position-${chartIndex}`} />
+          <button
+            className={chartType === 'expense' ? 'active' : ''}
+            onClick={() => setChartType('expense')}
+          >
+            Витрати
+          </button>
+          <button
+            className={chartType === 'income' ? 'active' : ''}
+            onClick={() => setChartType('income')}
+          >
+            Доходи
+          </button>
+        </div>
+      </div>
+
       <div className="charts-row">
         <div className="chart-card">
-          <h2>Витрати по категоріях</h2>
+          <h3>
+            {chartType === 'expense' ? 'Витрати' : 'Доходи'} по категоріях
+          </h3>
           {pieData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -162,7 +209,7 @@ function Dashboard() {
                   {pieData.map((_entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
+                      fill={chartColors[index % chartColors.length]}
                     />
                   ))}
                 </Pie>
@@ -175,16 +222,27 @@ function Dashboard() {
         </div>
 
         <div className="chart-card">
-          <h2>Топ категорій</h2>
-          {dashboard.byCategory.length > 0 ? (
+          <h3>Топ категорій</h3>
+          {categories.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={dashboard.byCategory.slice(0, 5)}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="category" />
-                <YAxis />
-                <Tooltip />
+              <BarChart data={categories.slice(0, 5)}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="category" stroke="var(--muted)" />
+                <YAxis stroke="var(--muted)" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'var(--card)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '8px',
+                  }}
+                />
                 <Legend />
-                <Bar dataKey="total" fill="#667eea" name="Сума" />
+                <Bar
+                  dataKey="total"
+                  fill={chartType === 'expense' ? '#ef4444' : '#10b981'}
+                  name="Сума"
+                  radius={[8, 8, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           ) : (

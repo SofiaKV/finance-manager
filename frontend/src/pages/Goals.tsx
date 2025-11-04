@@ -1,12 +1,18 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '../services/api';
-import { Goal, CreateGoalDto } from '../types';
+import { Goal, CreateGoalDto, TransactionType } from '../types';
 import './Goals.css';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { useAuth } from '../contexts/AuthContext';
 
 function Goals() {
+  const { refreshProfile } = useAuth();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [addFundsGoalId, setAddFundsGoalId] = useState<string | null>(null);
+  const [fundsAmount, setFundsAmount] = useState('');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -60,17 +66,46 @@ function Goals() {
   };
 
   const handleAddFunds = async (goal: Goal) => {
-    const amount = prompt('Скільки додати до цілі?');
-    if (amount) {
-      try {
-        await apiClient.updateGoal(goal.id, {
-          currentAmount: goal.currentAmount + parseFloat(amount),
-        });
-        await loadGoals();
-      } catch (error) {
-        console.error('Failed to update goal:', error);
-      }
+    setAddFundsGoalId(goal.id);
+    setFundsAmount('');
+  };
+
+  const handleSubmitFunds = async (goal: Goal) => {
+    const amount = parseFloat(fundsAmount);
+    if (isNaN(amount) || amount <= 0) {
+      alert('Будь ласка, введіть правильну суму');
+      return;
     }
+
+    try {
+      // Create a transaction for the goal contribution
+      await apiClient.createTransaction({
+        type: TransactionType.EXPENSE,
+        amount: amount,
+        category: 'Ціль',
+        description: `Внесок у ціль: ${goal.name}`,
+        date: new Date(),
+      });
+
+      // Update the goal's current amount
+      await apiClient.updateGoal(goal.id, {
+        currentAmount: goal.currentAmount + amount,
+      });
+
+      // Reload goals and refresh user balance
+      await loadGoals();
+      await refreshProfile();
+
+      setAddFundsGoalId(null);
+      setFundsAmount('');
+    } catch (error) {
+      console.error('Failed to update goal:', error);
+    }
+  };
+
+  const handleCancelAddFunds = () => {
+    setAddFundsGoalId(null);
+    setFundsAmount('');
   };
 
   if (loading) {
@@ -81,18 +116,18 @@ function Goals() {
     <div className="goals-page">
       <div className="page-header">
         <h1>Фінансові цілі</h1>
-        <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
+        <Button onClick={() => setShowForm(!showForm)}>
           {showForm ? 'Скасувати' : '+ Додати ціль'}
-        </button>
+        </Button>
       </div>
 
       {showForm && (
-        <div className="form-card">
+        <div className="form-card animate-in fade-in-50 slide-in-from-top-2">
           <h2>Нова ціль</h2>
           <form onSubmit={handleSubmit} className="goal-form">
             <div className="form-group">
               <label>Назва цілі</label>
-              <input
+              <Input
                 type="text"
                 value={formData.name}
                 onChange={(e) =>
@@ -106,7 +141,7 @@ function Goals() {
             <div className="form-row">
               <div className="form-group">
                 <label>Цільова сума (₴)</label>
-                <input
+                <Input
                   type="number"
                   value={formData.targetAmount}
                   onChange={(e) =>
@@ -120,7 +155,7 @@ function Goals() {
 
               <div className="form-group">
                 <label>Термін досягнення</label>
-                <input
+                <Input
                   type="date"
                   value={formData.deadline}
                   onChange={(e) =>
@@ -131,9 +166,7 @@ function Goals() {
               </div>
             </div>
 
-            <button type="submit" className="btn-primary">
-              Створити
-            </button>
+            <Button type="submit">Створити</Button>
           </form>
         </div>
       )}
@@ -197,12 +230,38 @@ function Goals() {
                   </span>
                 </div>
 
-                <button
-                  className="btn-add-funds"
-                  onClick={() => handleAddFunds(goal)}
-                >
-                  + Додати кошти
-                </button>
+                {addFundsGoalId === goal.id ? (
+                  <div className="add-funds-form">
+                    <Input
+                      type="number"
+                      value={fundsAmount}
+                      onChange={(e) => setFundsAmount(e.target.value)}
+                      placeholder="Введіть суму"
+                      min="0"
+                      step="0.01"
+                      autoFocus
+                    />
+                    <div className="add-funds-actions">
+                      <Button onClick={() => handleSubmitFunds(goal)} size="sm">
+                        Додати
+                      </Button>
+                      <Button
+                        onClick={handleCancelAddFunds}
+                        variant="outline"
+                        size="sm"
+                      >
+                        Скасувати
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    className="btn-add-funds"
+                    onClick={() => handleAddFunds(goal)}
+                  >
+                    + Додати кошти
+                  </button>
+                )}
               </div>
             );
           })

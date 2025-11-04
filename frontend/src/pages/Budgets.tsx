@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { apiClient } from '../services/api';
 import { Budget, CreateBudgetDto, Category, TransactionType } from '../types';
 import './Budgets.css';
+import { Button } from '../components/ui/button';
 
 function Budgets() {
   const [budgets, setBudgets] = useState<Budget[]>([]);
@@ -82,18 +83,19 @@ function Budgets() {
     <div className="budgets-page">
       <div className="page-header">
         <h1>Бюджети</h1>
-        <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
+        <Button onClick={() => setShowForm(!showForm)}>
           {showForm ? 'Скасувати' : '+ Додати бюджет'}
-        </button>
+        </Button>
       </div>
 
       {showForm && (
-        <div className="form-card">
+        <div className="form-card animate-in fade-in-50 slide-in-from-top-2">
           <h2>Новий бюджет</h2>
           <form onSubmit={handleSubmit} className="budget-form">
             <div className="form-group">
               <label>Категорія</label>
               <select
+                className="select"
                 value={formData.category}
                 onChange={(e) =>
                   setFormData({ ...formData, category: e.target.value })
@@ -126,6 +128,7 @@ function Budgets() {
             <div className="form-group">
               <label>Період</label>
               <select
+                className="select"
                 value={formData.period}
                 onChange={(e) =>
                   setFormData({
@@ -141,9 +144,7 @@ function Budgets() {
               </select>
             </div>
 
-            <button type="submit" className="btn-primary">
-              Створити
-            </button>
+            <Button type="submit">Створити</Button>
           </form>
         </div>
       )}
@@ -159,6 +160,7 @@ function Budgets() {
                 <div className="budget-header">
                   <h3>{budget.category}</h3>
                   <button
+                    type="button"
                     className="btn-delete-small"
                     onClick={() => handleDelete(budget.id)}
                   >

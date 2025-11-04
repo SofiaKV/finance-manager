@@ -1,3 +1,15 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--text);
+  background: var(--bg);
+  overflow-y: scroll; /* Force scrollbar to always show, preventing layout shift */
+}
+
 .layout {
   min-height: 100vh;
   display: flex;
@@ -5,13 +17,13 @@
 }
 
 .navbar {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 1rem 2rem;
+  background: var(--card);
+  color: var(--text);
+  padding: 0.75rem 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--border);
 }
 
 .nav-brand h2 {
@@ -21,27 +33,51 @@
 
 .nav-links {
   display: flex;
-  gap: 1.5rem;
+  gap: 0.5rem;
   flex: 1;
   justify-content: center;
+  position: relative;
 }
 
 .nav-links a {
-  color: white;
+  color: var(--text);
   text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  transition: background 0.3s;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  transition: color 0.2s ease;
+  position: relative;
+  z-index: 1;
 }
 
 .nav-links a:hover {
-  background: rgba(255, 255, 255, 0.2);
+  color: #000;
 }
 
 .nav-user {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
+}
+
+/* Sliding indicator for navbar */
+.sliding-nav {
+  padding: 4px;
+  border-radius: 12px;
+}
+
+.nav-indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  width: 0;
+  background: #111;
+  border-radius: 10px;
+  transition: transform 220ms ease, width 220ms ease;
+}
+
+.sliding-nav a.active {
+  color: #fff;
 }
 
 .user-name {
@@ -49,29 +85,31 @@
 }
 
 .user-balance {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 0.4rem 0.8rem;
-  border-radius: 4px;
-  font-weight: 500;
+  background: #f3f4f6;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  font-weight: 600;
+  color: #111;
 }
 
 .btn-logout {
-  background: rgba(255, 255, 255, 0.3);
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
+  background: #111;
+  color: #fff;
+  border: 1px solid #111;
+  padding: 0.4rem 0.8rem;
+  border-radius: 10px;
   cursor: pointer;
-  font-weight: 500;
-  transition: background 0.3s;
+  font-weight: 600;
+  transition: background 0.15s ease, transform 0.15s ease;
 }
 
 .btn-logout:hover {
-  background: rgba(255, 255, 255, 0.4);
+  background: #000;
+  transform: translateY(-1px);
 }
 
 .main-content {
   flex: 1;
-  padding: 2rem;
-  background: #f5f7fa;
+  padding: 1.25rem;
+  background: var(--bg);
 }

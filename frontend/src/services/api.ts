@@ -171,7 +171,11 @@ class ApiClient {
   }
 
   async deleteBudget(id: string): Promise<void> {
-    await this.request(`/budgets/${id}`, { method: 'DELETE' });
+    // Align with other DELETE calls to avoid body-parser quirks on some setups
+    await this.request(`/budgets/${id}`, {
+      method: 'DELETE',
+      body: JSON.stringify({}),
+    });
   }
 
   // Goal methods

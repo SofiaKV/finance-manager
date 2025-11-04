@@ -8,6 +8,8 @@ import {
   CreateTransactionDto,
 } from '../types';
 import './Transactions.css';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
 
 function Transactions() {
   const { refreshProfile } = useAuth();
@@ -87,6 +89,9 @@ function Transactions() {
     filter === 'ALL' ? true : txn.type === filter,
   );
 
+  const filterIndex =
+    filter === 'ALL' ? 0 : filter === TransactionType.INCOME ? 1 : 2;
+
   const availableCategories = categories.filter((cat) =>
     formData.type === TransactionType.INCOME
       ? cat.type === TransactionType.INCOME
@@ -101,19 +106,20 @@ function Transactions() {
     <div className="transactions-page">
       <div className="page-header">
         <h1>Транзакції</h1>
-        <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
+        <Button onClick={() => setShowForm(!showForm)}>
           {showForm ? 'Скасувати' : '+ Додати транзакцію'}
-        </button>
+        </Button>
       </div>
 
       {showForm && (
-        <div className="form-card">
+        <div className="form-card animate-in fade-in-50 slide-in-from-top-2">
           <h2>Нова транзакція</h2>
           <form onSubmit={handleSubmit} className="transaction-form">
             <div className="form-row">
               <div className="form-group">
                 <label>Тип</label>
                 <select
+                  className="select"
                   value={formData.type}
                   onChange={(e) =>
                     setFormData({
@@ -132,6 +138,7 @@ function Transactions() {
               <div className="form-group">
                 <label>Категорія</label>
                 <select
+                  className="select"
                   value={formData.category}
                   onChange={(e) =>
                     setFormData({ ...formData, category: e.target.value })
@@ -151,7 +158,7 @@ function Transactions() {
             <div className="form-row">
               <div className="form-group">
                 <label>Сума (₴)</label>
-                <input
+                <Input
                   type="number"
                   value={formData.amount}
                   onChange={(e) =>
@@ -165,7 +172,7 @@ function Transactions() {
 
               <div className="form-group">
                 <label>Дата</label>
-                <input
+                <Input
                   type="date"
                   value={formData.date}
                   onChange={(e) =>
@@ -178,7 +185,7 @@ function Transactions() {
 
             <div className="form-group">
               <label>Опис</label>
-              <input
+              <Input
                 type="text"
                 value={formData.description}
                 onChange={(e) =>
@@ -189,14 +196,16 @@ function Transactions() {
               />
             </div>
 
-            <button type="submit" className="btn-primary">
-              Зберегти
-            </button>
+            <Button type="submit">Зберегти</Button>
           </form>
         </div>
       )}
 
       <div className="filter-buttons">
+        <div
+          className="segmented-indicator"
+          style={{ transform: `translateX(${filterIndex * 100}%)` }}
+        />
         <button
           className={filter === 'ALL' ? 'active' : ''}
           onClick={() => setFilter('ALL')}
