@@ -8,20 +8,18 @@ import {
   User,
   TransactionType,
 } from '../types';
-import {
-  findUserByEmail,
-  findUserById,
-  addUser,
-  updateUser,
-} from '../data/users.data';
-import { getTransactionsByUserId } from '../data/transactions.data';
-
-/* eslint-disable @typescript-eslint/require-await */
+import { UserDao } from '../data/users.data';
+import { TransactionDao } from '../data/transactions.data';
 
 @Injectable()
 export class AuthService {
   private readonly emailRegex =
     /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|net|org|co|edu|gov|mil|info|io|co\.uk|ua)$/;
+
+  constructor(
+    private readonly userDao: UserDao,
+    private readonly transactionDao: TransactionDao,
+  ) {}
 
   private validateEmail(email: string): boolean {
     return this.emailRegex.test(email);
@@ -34,23 +32,23 @@ export class AuthService {
       throw new Error('Invalid email format');
     }
 
-    const existingUser = findUserByEmail(email);
+    const existingUser = await this.userDao.findUserByEmail(email);
     if (existingUser) {
       throw new Error('User with this email already exists');
     }
 
     const newUser: User = {
-      id: `user-${Date.now()}`,
+      id: '',
       email,
       password,
       name,
       createdAt: new Date(),
     };
 
-    addUser(newUser);
+    const createdUser = await this.userDao.addUser(newUser);
 
-    const userProfile = this.createUserProfile(newUser);
-    const token = newUser.id;
+    const userProfile = await this.createUserProfile(createdUser);
+    const token = createdUser.id;
 
     return {
       user: userProfile,
@@ -61,12 +59,12 @@ export class AuthService {
   async login(loginDto: LoginDto): Promise<AuthResponse> {
     const { email, password } = loginDto;
 
-    const user = findUserByEmail(email);
+    const user = await this.userDao.findUserByEmail(email);
     if (!user || user.password !== password) {
       throw new Error('Invalid email or password');
     }
 
-    const userProfile = this.createUserProfile(user);
+    const userProfile = await this.createUserProfile(user);
     const token = user.id;
 
     return {
@@ -76,7 +74,7 @@ export class AuthService {
   }
 
   async getProfile(userId: string): Promise<UserProfile | null> {
-    const user = findUserById(userId);
+    const user = await this.userDao.findUserById(userId);
     if (!user) {
       return null;
     }
@@ -88,7 +86,7 @@ export class AuthService {
     userId: string,
     updateProfileDto: UpdateProfileDto,
   ): Promise<UserProfile | null> {
-    const user = findUserById(userId);
+    const user = await this.userDao.findUserById(userId);
     if (!user) {
       return null;
     }
@@ -98,7 +96,9 @@ export class AuthService {
         throw new Error('Invalid email format');
       }
 
-      const existingUser = findUserByEmail(updateProfileDto.email);
+      const existingUser = await this.userDao.findUserByEmail(
+        updateProfileDto.email,
+      );
       if (existingUser && existingUser.id !== userId) {
         throw new Error('Email already in use');
       }
@@ -108,7 +108,7 @@ export class AuthService {
     if (updateProfileDto.name) updates.name = updateProfileDto.name;
     if (updateProfileDto.email) updates.email = updateProfileDto.email;
 
-    const updatedUser = updateUser(userId, updates);
+    const updatedUser = await this.userDao.updateUser(userId, updates);
     if (!updatedUser) {
       return null;
     }
@@ -116,9 +116,11 @@ export class AuthService {
     return this.createUserProfile(updatedUser);
   }
 
-  private createUserProfile(user: User): UserProfile {
-    // Calculate balance from transactions
-    const transactions = getTransactionsByUserId(user.id);
+  private async createUserProfile(user: User): Promise<UserProfile> {
+    const transactions = await this.transactionDao.getTransactionsByUserId(
+      user.id,
+    );
+
     const balance = transactions.reduce((sum, txn) => {
       return txn.type === TransactionType.INCOME
         ? sum + txn.amount

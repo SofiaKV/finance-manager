@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
 import { Injectable } from '@nestjs/common';
 import {
   Budget,
@@ -6,22 +5,21 @@ import {
   UpdateBudgetDto,
   TransactionType,
 } from '../types';
-import {
-  getBudgetsByUserId,
-  getBudgetById,
-  addBudget,
-  updateBudget,
-  deleteBudget,
-} from '../data/budgets.data';
-import { getTransactionsByUserId } from '../data/transactions.data';
+import { BudgetDao } from '../data/budgets.data';
+import { TransactionDao } from '../data/transactions.data';
 
 @Injectable()
 export class BudgetsService {
-  async getBudgets(userId: string): Promise<Budget[]> {
-    const budgets = getBudgetsByUserId(userId);
-    const transactions = getTransactionsByUserId(userId);
+  constructor(
+    private readonly budgetDao: BudgetDao,
+    private readonly transactionDao: TransactionDao,
+  ) {}
 
-    // Calculate spent amount for each budget
+  async getBudgets(userId: string): Promise<Budget[]> {
+    const budgets = await this.budgetDao.getBudgetsByUserId(userId); 
+    const transactions =
+      await this.transactionDao.getTransactionsByUserId(userId); 
+
     return budgets.map((budget) => {
       const spent = transactions
         .filter(
@@ -38,13 +36,13 @@ export class BudgetsService {
   }
 
   async getBudget(id: string, userId: string): Promise<Budget | null> {
-    const budget = getBudgetById(id);
+    const budget = await this.budgetDao.getBudgetById(id); 
     if (!budget || budget.userId !== userId) {
       return null;
     }
 
-    // Calculate spent amount
-    const transactions = getTransactionsByUserId(userId);
+    const transactions =
+      await this.transactionDao.getTransactionsByUserId(userId); 
     const spent = transactions
       .filter(
         (txn) =>
@@ -63,7 +61,7 @@ export class BudgetsService {
     createBudgetDto: CreateBudgetDto,
   ): Promise<Budget> {
     const newBudget: Budget = {
-      id: `budget-${Date.now()}`,
+      id: `budget-${Date.now()}`, 
       userId,
       ...createBudgetDto,
       startDate: new Date(createBudgetDto.startDate),
@@ -73,7 +71,7 @@ export class BudgetsService {
       updatedAt: new Date(),
     };
 
-    return addBudget(newBudget);
+    return await this.budgetDao.addBudget(newBudget); 
   }
 
   async updateBudget(
@@ -81,7 +79,7 @@ export class BudgetsService {
     userId: string,
     updateBudgetDto: UpdateBudgetDto,
   ): Promise<Budget | null> {
-    const budget = getBudgetById(id);
+    const budget = await this.budgetDao.getBudgetById(id); 
     if (!budget || budget.userId !== userId) {
       return null;
     }
@@ -98,14 +96,15 @@ export class BudgetsService {
     if (updateBudgetDto.endDate !== undefined)
       updates.endDate = new Date(updateBudgetDto.endDate);
 
-    return updateBudget(id, updates) || null;
+    const updated = await this.budgetDao.updateBudget(id, updates); 
+    return updated ?? null;
   }
 
   async deleteBudget(id: string, userId: string): Promise<boolean> {
-    const budget = getBudgetById(id);
+    const budget = await this.budgetDao.getBudgetById(id); 
     if (!budget || budget.userId !== userId) {
       return false;
     }
-    return deleteBudget(id);
+    return await this.budgetDao.deleteBudget(id); 
   }
 }

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
 import { Injectable } from '@nestjs/common';
 import {
   Transaction,
@@ -6,24 +5,23 @@ import {
   UpdateTransactionDto,
   TransactionFilters,
 } from '../types';
-import {
-  getTransactionsByUserId,
-  getTransactionById,
-  addTransaction,
-  updateTransaction,
-  deleteTransaction,
-} from '../data/transactions.data';
-import { getGoalsByUserId, updateGoal } from '../data/goals.data';
+import { TransactionDao } from '../data/transactions.data';
+import { GoalDao } from '../data/goals.data';
 
 @Injectable()
 export class TransactionsService {
+  constructor(
+    private readonly goalDao: GoalDao,
+    private readonly transactionDao: TransactionDao,
+  ) {}
+
   async getTransactions(
     userId: string,
     filters: TransactionFilters,
   ): Promise<Transaction[]> {
-    let transactions = getTransactionsByUserId(userId);
+    let transactions =
+      await this.transactionDao.getTransactionsByUserId(userId);
 
-    // Apply filters
     if (filters.startDate) {
       transactions = transactions.filter(
         (txn) => new Date(txn.date) >= filters.startDate!,
@@ -46,39 +44,26 @@ export class TransactionsService {
       transactions = transactions.filter((txn) => txn.type === filters.type);
     }
 
-    // Sort by date descending
-    transactions.sort(
+    return transactions.sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
     );
-
-    return transactions;
   }
 
   async getTransaction(
     id: string,
     userId: string,
   ): Promise<Transaction | null> {
-    const transaction = getTransactionById(id);
-    if (!transaction || transaction.userId !== userId) {
-      return null;
-    }
-    return transaction;
+    return this.transactionDao.getTransactionById(id, userId);
   }
 
   async createTransaction(
     userId: string,
     createTransactionDto: CreateTransactionDto,
   ): Promise<Transaction> {
-    const newTransaction: Transaction = {
-      id: `txn-${Date.now()}`,
+    return await this.transactionDao.addTransaction(
       userId,
-      ...createTransactionDto,
-      date: new Date(createTransactionDto.date),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    return addTransaction(newTransaction);
+      createTransactionDto,
+    );
   }
 
   async updateTransaction(
@@ -86,54 +71,49 @@ export class TransactionsService {
     userId: string,
     updateTransactionDto: UpdateTransactionDto,
   ): Promise<Transaction | null> {
-    const transaction = getTransactionById(id);
-    if (!transaction || transaction.userId !== userId) {
+    const existing = await this.transactionDao.getTransactionById(id, userId);
+    if (!existing) {
       return null;
     }
 
-    const updates: Partial<Transaction> = {};
-    if (updateTransactionDto.type !== undefined)
-      updates.type = updateTransactionDto.type;
-    if (updateTransactionDto.amount !== undefined)
-      updates.amount = updateTransactionDto.amount;
-    if (updateTransactionDto.category !== undefined)
-      updates.category = updateTransactionDto.category;
-    if (updateTransactionDto.description !== undefined)
-      updates.description = updateTransactionDto.description;
-    if (updateTransactionDto.date !== undefined)
-      updates.date = new Date(updateTransactionDto.date);
-
-    return updateTransaction(id, updates) || null;
+    const updated = await this.transactionDao.updateTransaction(
+      id,
+      userId,
+      updateTransactionDto,
+    );
+    return updated ?? null;
   }
 
   async deleteTransaction(id: string, userId: string): Promise<boolean> {
-    const transaction = getTransactionById(id);
-    if (!transaction || transaction.userId !== userId) {
+    const transaction = await this.transactionDao.getTransactionById(
+      id,
+      userId,
+    );
+    if (!transaction) {
       return false;
     }
 
-    // Check if this is a goal contribution transaction
     if (
       transaction.category === 'Ціль' &&
       transaction.description?.startsWith('Внесок у ціль:')
     ) {
-      // Extract goal name from description
       const goalName = transaction.description.replace('Внесок у ціль: ', '');
 
-      // Find the goal by name
-      const goals = getGoalsByUserId(userId);
+      const goals = await this.goalDao.getGoalsByUserId(userId);
       const goal = goals.find((g) => g.name === goalName);
 
       if (goal) {
-        // Decrease the goal's current amount by the transaction amount
         const newCurrentAmount = Math.max(
           0,
           goal.currentAmount - transaction.amount,
         );
-        updateGoal(goal.id, { currentAmount: newCurrentAmount });
+
+        await this.goalDao.updateGoal(goal.id, userId, {
+          currentAmount: newCurrentAmount,
+        });
       }
     }
 
-    return deleteTransaction(id);
+    return await this.transactionDao.deleteTransaction(id, userId);
   }
 }

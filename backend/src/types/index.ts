@@ -1,9 +1,8 @@
-// User types
 export interface User {
   id: string;
   email: string;
   name: string;
-  password: string; // In real app, this would be hashed
+  password: string; 
   createdAt: Date;
 }
 
@@ -15,7 +14,6 @@ export interface UserProfile {
   createdAt: Date;
 }
 
-// Transaction types
 export enum TransactionType {
   INCOME = 'INCOME',
   EXPENSE = 'EXPENSE',

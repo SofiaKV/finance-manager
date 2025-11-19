@@ -75,7 +75,7 @@ export class ReportsController {
     }
 
     const token = authorization.replace('Bearer ', '');
-    if (!token.startsWith('user-')) {
+    if (!token) {
       throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
     }
 

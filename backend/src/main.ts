@@ -1,4 +1,7 @@
-﻿import 'reflect-metadata';
+﻿import * as dotenv from 'dotenv';
+dotenv.config();
+
+import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import {
   FastifyAdapter,

@@ -82,7 +82,7 @@ export class AuthController {
   async logout(@Headers('authorization') authorization: string): Promise<{
     message: string;
   }> {
-    this.extractUserId(authorization); // Validate token
+    this.extractUserId(authorization); 
     return { message: 'Logged out successfully' };
   }
 
@@ -91,9 +91,8 @@ export class AuthController {
       throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
     }
 
-    // Simple token format: "Bearer user-{id}"
     const token = authorization.replace('Bearer ', '');
-    if (!token.startsWith('user-')) {
+    if (!token) {
       throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
     }
 

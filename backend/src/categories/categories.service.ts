@@ -1,11 +1,12 @@
-/* eslint-disable @typescript-eslint/require-await */
 import { Injectable } from '@nestjs/common';
 import { Category } from '../types';
-import { categories } from '../data/categories.data';
+import { CategoryDao } from '../data/categories.data';
 
 @Injectable()
 export class CategoriesService {
+  constructor(private readonly categoryDao: CategoryDao) {}
+
   async getCategories(): Promise<Category[]> {
-    return categories;
+    return this.categoryDao.findAllCategories();
   }
 }

@@ -1,168 +1,201 @@
-import { Transaction, TransactionType } from '../types';
-import { FileStorage } from '../utils/file-storage';
+import { Injectable } from '@nestjs/common';
+import {
+  Transaction,
+  CreateTransactionDto,
+  UpdateTransactionDto,
+  TransactionType,
+} from '../types';
+import { Connection } from './connection.service';
+import { AccountEntity, CategoryEntity, TransactionEntity } from './types';
+import { mapEntityTransactionTypeToEnum } from './utils';
 
-const initialTransactions: Transaction[] = [
-  {
-    id: 'txn-1',
-    userId: 'user-1',
-    type: TransactionType.INCOME,
-    amount: 50000,
-    category: 'Зарплата',
-    description: 'Зарплата за жовтень',
-    date: new Date('2025-10-01'),
-    createdAt: new Date('2025-10-01'),
-    updatedAt: new Date('2025-10-01'),
-  },
-  {
-    id: 'txn-2',
-    userId: 'user-1',
-    type: TransactionType.EXPENSE,
-    amount: 3500,
-    category: 'Їжа',
-    description: 'Покупки в супермаркеті',
-    date: new Date('2025-10-05'),
-    createdAt: new Date('2025-10-05'),
-    updatedAt: new Date('2025-10-05'),
-  },
-  {
-    id: 'txn-3',
-    userId: 'user-1',
-    type: TransactionType.EXPENSE,
-    amount: 1200,
-    category: 'Транспорт',
-    description: 'Проїзд за тиждень',
-    date: new Date('2025-10-07'),
-    createdAt: new Date('2025-10-07'),
-    updatedAt: new Date('2025-10-07'),
-  },
-  {
-    id: 'txn-4',
-    userId: 'user-1',
-    type: TransactionType.EXPENSE,
-    amount: 5000,
-    category: 'Комунальні',
-    description: 'Електрика і вода',
-    date: new Date('2025-10-10'),
-    createdAt: new Date('2025-10-10'),
-    updatedAt: new Date('2025-10-10'),
-  },
-  {
-    id: 'txn-5',
-    userId: 'user-1',
-    type: TransactionType.INCOME,
-    amount: 8000,
-    category: 'Фріланс',
-    description: 'Веб-розробка проект',
-    date: new Date('2025-10-15'),
-    createdAt: new Date('2025-10-15'),
-    updatedAt: new Date('2025-10-15'),
-  },
-  {
-    id: 'txn-6',
-    userId: 'user-1',
-    type: TransactionType.EXPENSE,
-    amount: 2500,
-    category: 'Розваги',
-    description: 'Кіно і ресторан',
-    date: new Date('2025-10-18'),
-    createdAt: new Date('2025-10-18'),
-    updatedAt: new Date('2025-10-18'),
-  },
-  {
-    id: 'txn-7',
-    userId: 'user-1',
-    type: TransactionType.EXPENSE,
-    amount: 15000,
-    category: 'Житло',
-    description: 'Оренда квартири',
-    date: new Date('2025-10-20'),
-    createdAt: new Date('2025-10-20'),
-    updatedAt: new Date('2025-10-20'),
-  },
-  {
-    id: 'txn-8',
-    userId: 'user-1',
-    type: TransactionType.EXPENSE,
-    amount: 800,
-    category: "Здоров'я",
-    description: 'Аптека',
-    date: new Date('2025-10-22'),
-    createdAt: new Date('2025-10-22'),
-    updatedAt: new Date('2025-10-22'),
-  },
-  {
-    id: 'txn-9',
-    userId: 'user-1',
-    type: TransactionType.INCOME,
-    amount: 50000,
-    category: 'Зарплата',
-    description: 'Зарплата за листопад',
-    date: new Date('2025-11-01'),
-    createdAt: new Date('2025-11-01'),
-    updatedAt: new Date('2025-11-01'),
-  },
-  {
-    id: 'txn-10',
-    userId: 'user-1',
-    type: TransactionType.EXPENSE,
-    amount: 4200,
-    category: 'Їжа',
-    description: 'Продукти',
-    date: new Date('2025-11-02'),
-    createdAt: new Date('2025-11-02'),
-    updatedAt: new Date('2025-11-02'),
-  },
-];
-
-let transactions: Transaction[] = [];
-
-// Load transactions from file on module initialization
-void (async () => {
-  transactions = await FileStorage.load('transactions', initialTransactions);
-})();
-
-const saveTransactions = () => {
-  FileStorage.saveSync('transactions', transactions);
+type TransactionEntityWithCategory = TransactionEntity & {
+  category_name: string;
 };
 
-// Helper functions
-export const getTransactionsByUserId = (userId: string): Transaction[] => {
-  return transactions.filter((txn) => txn.userId === userId);
-};
+@Injectable()
+export class TransactionDao {
+  constructor(private readonly connection: Connection) {}
 
-export const getTransactionById = (id: string): Transaction | undefined => {
-  return transactions.find((txn) => txn.id === id);
-};
-
-export const addTransaction = (transaction: Transaction): Transaction => {
-  transactions.push(transaction);
-  saveTransactions();
-  return transaction;
-};
-
-export const updateTransaction = (
-  id: string,
-  updates: Partial<Transaction>,
-): Transaction | undefined => {
-  const index = transactions.findIndex((txn) => txn.id === id);
-  if (index !== -1) {
-    transactions[index] = {
-      ...transactions[index],
-      ...updates,
-      updatedAt: new Date(),
+  mapRowToTransaction(row: TransactionEntityWithCategory): Transaction {
+    return {
+      id: row.id,
+      userId: row.user_id,
+      amount: Number(row.amount),
+      type: mapEntityTransactionTypeToEnum(row.type),
+      category: row.category_name ?? undefined,
+      description: row.description ?? undefined,
+      date: row.date,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
     };
-    saveTransactions();
-    return transactions[index];
   }
-  return undefined;
-};
 
-export const deleteTransaction = (id: string): boolean => {
-  const index = transactions.findIndex((txn) => txn.id === id);
-  if (index !== -1) {
-    transactions.splice(index, 1);
-    saveTransactions();
-    return true;
+  normalizeTransactionType(
+    type: TransactionType | undefined,
+  ): 'income' | 'expense' | 'transfer' {
+    if (!type) {
+      return 'expense';
+    }
+
+    const t = String(type).toLowerCase();
+
+    if (t === 'income' || t === 'expense' || t === 'transfer') {
+      return t;
+    }
+
+    throw new Error(`Unsupported transaction type: ${type}`);
   }
-  return false;
-};
+
+  async ensureCategoryId(categoryName: string): Promise<string | null> {
+    if (!categoryName) return null;
+
+    const existing = await this.connection
+      .db<CategoryEntity>('categories')
+      .where({ name: categoryName })
+      .first('id');
+
+    if (existing) {
+      return existing.id;
+    }
+
+    return null;
+  }
+
+  async ensureDefaultAccountId(userId: string): Promise<string> {
+    const existing = await this.connection
+      .db<AccountEntity>('accounts')
+      .where({ user_id: userId, deleted_at: null })
+      .orderBy('created_at', 'asc')
+      .first('id');
+
+    if (existing) return existing.id;
+
+    const [row] = await this.connection
+      .db<AccountEntity>('accounts')
+      .insert({
+        user_id: userId,
+        name: 'Основний рахунок',
+        currency: 'UAH',
+        initial_balance: 0,
+        balance: 0,
+        account_type: 'cash',
+        is_active: true,
+        icon: null,
+        sort_order: 0,
+      })
+      .returning('id');
+
+    return row.id;
+  }
+
+  async getTransactionsByUserId(userId: string): Promise<Transaction[]> {
+    const rows = await this.connection
+      .db('transactions as t')
+      .leftJoin('categories as c', 't.category_id', 'c.id')
+      .select<
+        TransactionEntityWithCategory[]
+      >('t.id', 't.user_id', 't.amount', 't.type', 't.date', 't.description', 't.created_at', 't.updated_at', this.connection.db.raw('c.name as category_name'))
+      .where('t.user_id', userId)
+      .whereNull('t.deleted_at')
+      .orderBy('t.date', 'desc');
+
+    return rows.map((row) => this.mapRowToTransaction(row));
+  }
+
+  async getTransactionById(
+    id: string,
+    userId: string,
+  ): Promise<Transaction | null> {
+    const row = await this.connection
+      .db('transactions as t')
+      .leftJoin('categories as c', 't.category_id', 'c.id')
+      .select('t.*', this.connection.db.raw('c.name as category_name'))
+      .where('t.id', id)
+      .andWhere('t.user_id', userId)
+      .whereNull('t.deleted_at')
+      .first<TransactionEntityWithCategory>();
+
+    return row ? this.mapRowToTransaction(row) : null;
+  }
+
+  async addTransaction(
+    userId: string,
+    dto: CreateTransactionDto,
+  ): Promise<Transaction> {
+    const accountId = await this.ensureDefaultAccountId(userId);
+    const categoryId = await this.ensureCategoryId(dto.category);
+
+    const [inserted] = await this.connection
+      .db<TransactionEntity>('transactions')
+      .insert({
+        user_id: userId,
+        account_id: accountId,
+        category_id: categoryId,
+        amount: dto.amount,
+        type: this.normalizeTransactionType(dto.type),
+        description: dto.description ?? null,
+        date: dto.date,
+      })
+      .returning('*');
+
+    const row = await this.connection
+      .db('transactions as t')
+      .leftJoin('categories as c', 't.category_id', 'c.id')
+      .select('t.*', this.connection.db.raw('c.name as category_name'))
+      .where('t.id', inserted.id)
+      .first<TransactionEntityWithCategory>();
+
+    return this.mapRowToTransaction(row);
+  }
+
+  async updateTransaction(
+    id: string,
+    userId: string,
+    dto: UpdateTransactionDto,
+  ): Promise<Transaction | null> {
+    const patch: Partial<TransactionEntity> = {};
+
+    if (dto.amount !== undefined) patch.amount = dto.amount;
+    if (dto.type !== undefined)
+      patch.type = this.normalizeTransactionType(dto.type);
+    if (dto.description !== undefined) patch.description = dto.description;
+    if (dto.date !== undefined) patch.date = dto.date;
+
+    if (dto.category !== undefined) {
+      patch.category_id = await this.ensureCategoryId(dto.category);
+    }
+
+    if (Object.keys(patch).length === 0) {
+      return this.getTransactionById(id, userId);
+    }
+
+    patch.updated_at = new Date();
+
+    const [updated] = await this.connection
+      .db<TransactionEntity>('transactions')
+      .where({ id, user_id: userId, deleted_at: null })
+      .update(patch)
+      .returning('*');
+
+    if (!updated) return null;
+
+    const row = await this.connection
+      .db('transactions as t')
+      .leftJoin('categories as c', 't.category_id', 'c.id')
+      .select('t.*', this.connection.db.raw('c.name as category_name'))
+      .where('t.id', updated.id)
+      .first<TransactionEntityWithCategory>();
+
+    return row ? this.mapRowToTransaction(row) : null;
+  }
+
+  async deleteTransaction(id: string, userId: string): Promise<boolean> {
+    const affected = await this.connection
+      .db<TransactionEntity>('transactions')
+      .where({ id, user_id: userId, deleted_at: null })
+      .update({ deleted_at: new Date() });
+
+    return affected > 0;
+  }
+}

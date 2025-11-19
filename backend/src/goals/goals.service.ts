@@ -1,43 +1,23 @@
-/* eslint-disable @typescript-eslint/require-await */
 import { Injectable } from '@nestjs/common';
 import { Goal, CreateGoalDto, UpdateGoalDto } from '../types';
-import {
-  getGoalsByUserId,
-  getGoalById,
-  addGoal,
-  updateGoal,
-  deleteGoal,
-} from '../data/goals.data';
+import { GoalDao } from '../data/goals.data';
 
 @Injectable()
 export class GoalsService {
+  constructor(private readonly goalDao: GoalDao) {}
   async getGoals(userId: string): Promise<Goal[]> {
-    return getGoalsByUserId(userId);
+    return await this.goalDao.getGoalsByUserId(userId);
   }
 
   async getGoal(id: string, userId: string): Promise<Goal | null> {
-    const goal = getGoalById(id);
-    if (!goal || goal.userId !== userId) {
-      return null;
-    }
-    return goal;
+    return await this.goalDao.getGoalByIdAndUserId(id, userId);
   }
 
   async createGoal(
     userId: string,
     createGoalDto: CreateGoalDto,
   ): Promise<Goal> {
-    const newGoal: Goal = {
-      id: `goal-${Date.now()}`,
-      userId,
-      ...createGoalDto,
-      deadline: new Date(createGoalDto.deadline),
-      currentAmount: 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    return addGoal(newGoal);
+    return await this.goalDao.addGoal(userId, createGoalDto);
   }
 
   async updateGoal(
@@ -45,28 +25,10 @@ export class GoalsService {
     userId: string,
     updateGoalDto: UpdateGoalDto,
   ): Promise<Goal | null> {
-    const goal = getGoalById(id);
-    if (!goal || goal.userId !== userId) {
-      return null;
-    }
-
-    const updates: Partial<Goal> = {};
-    if (updateGoalDto.name !== undefined) updates.name = updateGoalDto.name;
-    if (updateGoalDto.targetAmount !== undefined)
-      updates.targetAmount = updateGoalDto.targetAmount;
-    if (updateGoalDto.currentAmount !== undefined)
-      updates.currentAmount = updateGoalDto.currentAmount;
-    if (updateGoalDto.deadline !== undefined)
-      updates.deadline = new Date(updateGoalDto.deadline);
-
-    return updateGoal(id, updates) || null;
+    return await this.goalDao.updateGoal(id, userId, updateGoalDto);
   }
 
   async deleteGoal(id: string, userId: string): Promise<boolean> {
-    const goal = getGoalById(id);
-    if (!goal || goal.userId !== userId) {
-      return false;
-    }
-    return deleteGoal(id);
+    return await this.goalDao.deleteGoal(id, userId);
   }
 }

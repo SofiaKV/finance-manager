@@ -1,88 +1,103 @@
-import { Goal } from '../types';
-import { FileStorage } from '../utils/file-storage';
+import { Injectable } from '@nestjs/common';
+import { Goal, CreateGoalDto, UpdateGoalDto } from '../types';
+import { Connection } from './connection.service';
+import { GoalEntity } from './types';
 
-const initialGoals: Goal[] = [
-  {
-    id: 'goal-1',
-    userId: 'user-1',
-    name: 'Відпустка в Європі',
-    targetAmount: 50000,
-    currentAmount: 15000,
-    deadline: new Date('2025-07-01'),
-    createdAt: new Date('2025-01-01'),
-    updatedAt: new Date('2025-10-15'),
-  },
-  {
-    id: 'goal-2',
-    userId: 'user-1',
-    name: 'Новий ноутбук',
-    targetAmount: 30000,
-    currentAmount: 8000,
-    deadline: new Date('2025-12-31'),
-    createdAt: new Date('2025-09-01'),
-    updatedAt: new Date('2025-10-22'),
-  },
-  {
-    id: 'goal-3',
-    userId: 'user-1',
-    name: 'Резервний фонд',
-    targetAmount: 100000,
-    currentAmount: 25000,
-    deadline: new Date('2026-06-01'),
-    createdAt: new Date('2025-01-01'),
-    updatedAt: new Date('2025-11-01'),
-  },
-];
+@Injectable()
+export class GoalDao {
+  constructor(private readonly connection: Connection) {}
 
-let goals: Goal[] = [];
-
-// Load goals from file on module initialization
-void (async () => {
-  goals = await FileStorage.load('goals', initialGoals);
-})();
-
-const saveGoals = () => {
-  FileStorage.saveSync('goals', goals);
-};
-
-// Helper functions
-export const getGoalsByUserId = (userId: string): Goal[] => {
-  return goals.filter((goal) => goal.userId === userId);
-};
-
-export const getGoalById = (id: string): Goal | undefined => {
-  return goals.find((goal) => goal.id === id);
-};
-
-export const addGoal = (goal: Goal): Goal => {
-  goals.push(goal);
-  saveGoals();
-  return goal;
-};
-
-export const updateGoal = (
-  id: string,
-  updates: Partial<Goal>,
-): Goal | undefined => {
-  const index = goals.findIndex((goal) => goal.id === id);
-  if (index !== -1) {
-    goals[index] = {
-      ...goals[index],
-      ...updates,
-      updatedAt: new Date(),
+  mapRowToGoal(row: GoalEntity): Goal {
+    return {
+      id: row.id,
+      userId: row.user_id,
+      name: row.name,
+      targetAmount: Number(row.target_amount),
+      currentAmount: Number(row.current_saved),
+      deadline: row.target_date,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
     };
-    saveGoals();
-    return goals[index];
   }
-  return undefined;
-};
 
-export const deleteGoal = (id: string): boolean => {
-  const index = goals.findIndex((goal) => goal.id === id);
-  if (index !== -1) {
-    goals.splice(index, 1);
-    saveGoals();
-    return true;
+  async getGoalsByUserId(userId: string): Promise<Goal[]> {
+    const rows = await this.connection
+      .db<GoalEntity>('goals')
+      .where({ user_id: userId, deleted_at: null })
+      .orderBy('created_at', 'desc');
+
+    return rows.map((row) => this.mapRowToGoal(row));
   }
-  return false;
-};
+
+  async getGoalByIdAndUserId(id: string, userId: string): Promise<Goal | null> {
+    const row = await this.connection
+      .db<GoalEntity>('goals')
+      .where({ id, user_id: userId, deleted_at: null })
+      .first();
+
+    return row ? this.mapRowToGoal(row) : null;
+  }
+
+  async addGoal(userId: string, dto: CreateGoalDto): Promise<Goal> {
+    const now = new Date();
+
+    const [row] = await this.connection
+      .db<GoalEntity>('goals')
+      .insert({
+        user_id: userId,
+        name: dto.name,
+
+        target_amount: dto.targetAmount,
+        current_saved: 0,
+
+        target_date: dto.deadline ?? null,
+
+        start_date: now,
+        status: 'in_progress',
+      })
+      .returning('*');
+
+    return this.mapRowToGoal(row);
+  }
+
+  async updateGoal(
+    id: string,
+    userId: string,
+    dto: UpdateGoalDto,
+  ): Promise<Goal | null> {
+    const patch: Partial<GoalEntity> = {};
+
+    if (dto.name !== undefined) patch.name = dto.name;
+    if (dto.targetAmount !== undefined) patch.target_amount = dto.targetAmount;
+    if (dto.currentAmount !== undefined)
+      patch.current_saved = dto.currentAmount;
+    if (dto.deadline !== undefined) patch.target_date = dto.deadline;
+
+    if (Object.keys(patch).length === 0) {
+      const row = await this.connection
+        .db<GoalEntity>('goals')
+        .where({ id, user_id: userId, deleted_at: null })
+        .first();
+      return row ? this.mapRowToGoal(row) : null;
+    }
+
+    patch.updated_at = new Date();
+
+    const [row] = await this.connection
+      .db<GoalEntity>('goals')
+      .where({ id, user_id: userId, deleted_at: null })
+      .update(patch)
+      .returning('*');
+
+    return row ? this.mapRowToGoal(row) : null;
+  }
+
+  async deleteGoal(id: string, userId: string): Promise<boolean> {
+    const affected = await this.connection
+      .db<GoalEntity>('goals')
+      .where({ id, user_id: userId, deleted_at: null })
+      .update({ deleted_at: new Date() });
+
+    return affected > 0;
+  }
+}
