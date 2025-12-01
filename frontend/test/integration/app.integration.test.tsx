@@ -4,7 +4,7 @@
  * by simulating real user flows through the application.
  */
 
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '../../src/contexts/AuthContext';
@@ -13,12 +13,7 @@ import Register from '../../src/pages/Register';
 import Dashboard from '../../src/pages/Dashboard';
 import Layout from '../../src/components/Layout';
 import { apiClient } from '../../src/services/api';
-import {
-  UserProfile,
-  Transaction,
-  TransactionType,
-  Category,
-} from '../../src/types';
+import { UserProfile, Transaction, TransactionType } from '../../src/types';
 
 // Protected and Public route components for testing
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -119,11 +114,7 @@ const mockUser: UserProfile = {
   createdAt: new Date('2024-01-01'),
 };
 
-const mockCategories: Category[] = [
-  { id: '1', name: 'Їжа', type: TransactionType.EXPENSE, icon: '🍔' },
-  { id: '2', name: 'Транспорт', type: TransactionType.EXPENSE, icon: '🚗' },
-  { id: '3', name: 'Зарплата', type: TransactionType.INCOME, icon: '💰' },
-];
+// Note: categories are not required for current integration scenarios
 
 const mockTransactions: Transaction[] = [
   {
@@ -379,9 +370,7 @@ describe('Form Interaction Integration Tests', () => {
     });
 
     // Try to submit with empty fields - HTML5 validation should prevent submission
-    const submitButton = screen.getByRole('button', {
-      name: /Зареєструватися/i,
-    });
+    // No need to reference the submit button directly for this check
 
     // Fill only name
     await user.type(screen.getByLabelText(/Ім'я/i), 'Test');

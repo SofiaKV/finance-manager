@@ -26,10 +26,20 @@ test.describe('Goals', () => {
     });
 
     test('should display goal cards or empty state', async ({ page }) => {
-      const goalCards = page.locator('.goal-card');
-      const emptyState = page.getByText(/Немає фінансових цілей/i);
+      // Treat a goal card as the container around a level-3 heading (goal title)
+      const goalHeadings = page.getByRole('heading', { level: 3 });
+      const goalCards = goalHeadings.locator('..').locator('..');
+      const emptyState = page.getByText(/^Немає фінансових цілей$/i);
 
-      if (await goalCards.count() > 0) {
+      // Wait for either cards or empty state to avoid flakiness
+      await Promise.race([
+        goalHeadings.first().waitFor({ state: 'visible' }).catch(() => null),
+        emptyState.waitFor({ state: 'visible' }).catch(() => null),
+      ]);
+
+      const hasCards = (await goalHeadings.count()) > 0;
+
+      if (hasCards) {
         await expect(goalCards.first()).toBeVisible();
       } else {
         await expect(emptyState).toBeVisible();
@@ -93,38 +103,44 @@ test.describe('Goals', () => {
 
   test.describe('Goal Display', () => {
     test('should display goal progress bar', async ({ page }) => {
-      const goalCards = page.locator('.goal-card');
+      const goalHeadings = page.getByRole('heading', { level: 3 });
+      // Use the heading's grandparent as the full card container
+      const goalCards = goalHeadings.locator('..').locator('..');
       
-      if (await goalCards.count() > 0) {
-        const progressBar = goalCards.first().locator('.progress-bar');
-        await expect(progressBar).toBeVisible();
+      if (await goalHeadings.count() > 0) {
+        // e.g., "0% досягнуто"
+        const progressIndicator = goalCards.first().getByText(/\d+%\s+досягнуто/i);
+        await expect(progressIndicator).toBeVisible();
       }
     });
 
     test('should display goal amounts', async ({ page }) => {
-      const goalCards = page.locator('.goal-card');
+      const goalHeadings = page.getByRole('heading', { level: 3 });
+      const goalCards = goalHeadings.locator('..').locator('..');
       
-      if (await goalCards.count() > 0) {
+      if (await goalHeadings.count() > 0) {
         await expect(goalCards.first().getByText(/Накопичено/i)).toBeVisible();
         await expect(goalCards.first().getByText(/Ціль/i)).toBeVisible();
       }
     });
 
     test('should display percentage and days remaining', async ({ page }) => {
-      const goalCards = page.locator('.goal-card');
+      const goalHeadings = page.getByRole('heading', { level: 3 });
+      const goalCards = goalHeadings.locator('..').locator('..');
       
-      if (await goalCards.count() > 0) {
-        await expect(goalCards.first().getByText(/досягнуто/i)).toBeVisible();
+      if (await goalHeadings.count() > 0) {
+        await expect(goalCards.first().getByText(/\d+%\s+досягнуто/i)).toBeVisible();
         // Either "днів залишилось" or "Термін минув"
-        const daysLeft = goalCards.first().locator('.days-left');
-        await expect(daysLeft).toBeVisible();
+        const daysText = goalCards.first().getByText(/(днів залишилось|Термін минув)/i);
+        await expect(daysText).toBeVisible();
       }
     });
 
     test('should have add funds button', async ({ page }) => {
-      const goalCards = page.locator('.goal-card');
+      const goalHeadings = page.getByRole('heading', { level: 3 });
+      const goalCards = goalHeadings.locator('..').locator('..');
       
-      if (await goalCards.count() > 0) {
+      if (await goalHeadings.count() > 0) {
         const addFundsButton = goalCards.first().getByRole('button', { name: /Додати кошти/i });
         await expect(addFundsButton).toBeVisible();
       }
@@ -133,12 +149,13 @@ test.describe('Goals', () => {
 
   test.describe('Add Funds to Goal', () => {
     test('should open add funds form', async ({ page }) => {
-      const goalCards = page.locator('.goal-card');
+      const goalHeadings = page.getByRole('heading', { level: 3 });
+      const goalCards = goalHeadings.locator('..').locator('..');
       
-      if (await goalCards.count() > 0) {
+      if (await goalHeadings.count() > 0) {
         // Click add funds button
         await goalCards.first().getByRole('button', { name: /Додати кошти/i }).click();
-
+ 
         // Form should appear
         await expect(goalCards.first().locator('input[type="number"]')).toBeVisible();
         await expect(goalCards.first().getByRole('button', { name: /Додати/i })).toBeVisible();
@@ -147,33 +164,35 @@ test.describe('Goals', () => {
     });
 
     test('should cancel add funds', async ({ page }) => {
-      const goalCards = page.locator('.goal-card');
+      const goalHeadings = page.getByRole('heading', { level: 3 });
+      const goalCards = goalHeadings.locator('..').locator('..');
       
-      if (await goalCards.count() > 0) {
+      if (await goalHeadings.count() > 0) {
         // Click add funds button
         await goalCards.first().getByRole('button', { name: /Додати кошти/i }).click();
-
+ 
         // Click cancel
         await goalCards.first().getByRole('button', { name: /Скасувати/i }).click();
-
+ 
         // Add funds button should be visible again
         await expect(goalCards.first().getByRole('button', { name: /Додати кошти/i })).toBeVisible();
       }
     });
 
     test('should add funds to goal', async ({ page }) => {
-      const goalCards = page.locator('.goal-card');
+      const goalHeadings = page.getByRole('heading', { level: 3 });
+      const goalCards = goalHeadings.locator('..').locator('..');
       
-      if (await goalCards.count() > 0) {
+      if (await goalHeadings.count() > 0) {
         // Click add funds button
         await goalCards.first().getByRole('button', { name: /Додати кошти/i }).click();
-
+ 
         // Fill amount
         await goalCards.first().locator('input[type="number"]').fill('100');
-
+ 
         // Submit
         await goalCards.first().getByRole('button', { name: /Додати/i }).click();
-
+ 
         // Wait for submission
         await page.waitForTimeout(1000);
       }

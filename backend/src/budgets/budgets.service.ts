@@ -16,9 +16,9 @@ export class BudgetsService {
   ) {}
 
   async getBudgets(userId: string): Promise<Budget[]> {
-    const budgets = await this.budgetDao.getBudgetsByUserId(userId); 
+    const budgets = await this.budgetDao.getBudgetsByUserId(userId);
     const transactions =
-      await this.transactionDao.getTransactionsByUserId(userId); 
+      await this.transactionDao.getTransactionsByUserId(userId);
 
     return budgets.map((budget) => {
       const spent = transactions
@@ -36,13 +36,13 @@ export class BudgetsService {
   }
 
   async getBudget(id: string, userId: string): Promise<Budget | null> {
-    const budget = await this.budgetDao.getBudgetById(id); 
+    const budget = await this.budgetDao.getBudgetById(id);
     if (!budget || budget.userId !== userId) {
       return null;
     }
 
     const transactions =
-      await this.transactionDao.getTransactionsByUserId(userId); 
+      await this.transactionDao.getTransactionsByUserId(userId);
     const spent = transactions
       .filter(
         (txn) =>
@@ -61,7 +61,7 @@ export class BudgetsService {
     createBudgetDto: CreateBudgetDto,
   ): Promise<Budget> {
     const newBudget: Budget = {
-      id: `budget-${Date.now()}`, 
+      id: `budget-${Date.now()}`,
       userId,
       ...createBudgetDto,
       startDate: new Date(createBudgetDto.startDate),
@@ -71,7 +71,7 @@ export class BudgetsService {
       updatedAt: new Date(),
     };
 
-    return await this.budgetDao.addBudget(newBudget); 
+    return await this.budgetDao.addBudget(newBudget);
   }
 
   async updateBudget(
@@ -79,7 +79,7 @@ export class BudgetsService {
     userId: string,
     updateBudgetDto: UpdateBudgetDto,
   ): Promise<Budget | null> {
-    const budget = await this.budgetDao.getBudgetById(id); 
+    const budget = await this.budgetDao.getBudgetById(id);
     if (!budget || budget.userId !== userId) {
       return null;
     }
@@ -96,15 +96,15 @@ export class BudgetsService {
     if (updateBudgetDto.endDate !== undefined)
       updates.endDate = new Date(updateBudgetDto.endDate);
 
-    const updated = await this.budgetDao.updateBudget(id, updates); 
+    const updated = await this.budgetDao.updateBudget(id, updates);
     return updated ?? null;
   }
 
   async deleteBudget(id: string, userId: string): Promise<boolean> {
-    const budget = await this.budgetDao.getBudgetById(id); 
+    const budget = await this.budgetDao.getBudgetById(id);
     if (!budget || budget.userId !== userId) {
       return false;
     }
-    return await this.budgetDao.deleteBudget(id); 
+    return await this.budgetDao.deleteBudget(id);
   }
 }

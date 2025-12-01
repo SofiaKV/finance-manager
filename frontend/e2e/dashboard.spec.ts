@@ -25,11 +25,11 @@ test.describe('Dashboard', () => {
       await expect(page.getByRole('button', { name: /Рік/i })).toBeVisible();
       await expect(page.getByRole('button', { name: /Все/i })).toBeVisible();
 
-      // Check stat cards
-      await expect(page.getByText(/Доходи/i)).toBeVisible();
-      await expect(page.getByText(/Витрати/i)).toBeVisible();
-      await expect(page.getByText(/Баланс/i)).toBeVisible();
-      await expect(page.getByText(/Транзакції/i)).toBeVisible();
+      // Check stat cards (disambiguate from chart toggle button)
+      await expect(page.locator('.stat-label', { hasText: /^Доходи$/ })).toBeVisible();
+      await expect(page.locator('.stat-label', { hasText: /^Витрати$/ })).toBeVisible();
+      await expect(page.locator('.stat-label', { hasText: /^Баланс$/ })).toBeVisible();
+      await expect(page.locator('.stat-label', { hasText: /^Транзакції$/ })).toBeVisible();
     });
 
     test('should display user balance in navigation', async ({ page }) => {

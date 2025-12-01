@@ -82,7 +82,7 @@ export class AuthController {
   async logout(@Headers('authorization') authorization: string): Promise<{
     message: string;
   }> {
-    this.extractUserId(authorization); 
+    this.extractUserId(authorization);
     return { message: 'Logged out successfully' };
   }
 

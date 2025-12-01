@@ -27,10 +27,21 @@ test.describe('Budgets', () => {
 
     test('should display budget cards or empty state', async ({ page }) => {
       // Either budgets exist or empty state is shown
-      const budgetCards = page.locator('.budget-card');
-      const emptyState = page.getByText(/Немає бюджетів/i);
+      // Treat a card as a container around a level-3 heading (category name)
+      const budgetHeadings = page.getByRole('heading', { level: 3 });
+      // The heading's parent holds title+delete; the grandparent is the full card
+      const budgetCards = budgetHeadings.locator('..').locator('..');
+      const emptyState = page.getByText(/^Немає бюджетів$/i);
 
-      if (await budgetCards.count() > 0) {
+      // Wait for either state to appear to avoid flakiness
+      await Promise.race([
+        budgetHeadings.first().waitFor({ state: 'visible' }).catch(() => null),
+        emptyState.waitFor({ state: 'visible' }).catch(() => null),
+      ]);
+
+      const hasCards = (await budgetHeadings.count()) > 0;
+
+      if (hasCards) {
         await expect(budgetCards.first()).toBeVisible();
       } else {
         await expect(emptyState).toBeVisible();
@@ -99,19 +110,21 @@ test.describe('Budgets', () => {
 
   test.describe('Budget Display', () => {
     test('should display budget progress bar', async ({ page }) => {
-      const budgetCards = page.locator('.budget-card');
+      const budgetHeadings = page.getByRole('heading', { level: 3 });
+      const budgetCards = budgetHeadings.locator('..').locator('..');
       
-      if (await budgetCards.count() > 0) {
-        // Check for progress bar
-        const progressBar = budgetCards.first().locator('.progress-bar');
-        await expect(progressBar).toBeVisible();
+      if (await budgetHeadings.count() > 0) {
+        // Check for progress indicator text e.g., "80% використано"
+        const progressIndicator = budgetCards.first().getByText(/\d+%\s+використано/i);
+        await expect(progressIndicator).toBeVisible();
       }
     });
 
     test('should display budget amounts', async ({ page }) => {
-      const budgetCards = page.locator('.budget-card');
+      const budgetHeadings = page.getByRole('heading', { level: 3 });
+      const budgetCards = budgetHeadings.locator('..').locator('..');
       
-      if (await budgetCards.count() > 0) {
+      if (await budgetHeadings.count() > 0) {
         // Check for spent and limit amounts
         await expect(budgetCards.first().getByText(/Витрачено/i)).toBeVisible();
         await expect(budgetCards.first().getByText(/Ліміт/i)).toBeVisible();
@@ -119,9 +132,10 @@ test.describe('Budgets', () => {
     });
 
     test('should display remaining amount and percentage', async ({ page }) => {
-      const budgetCards = page.locator('.budget-card');
+      const budgetHeadings = page.getByRole('heading', { level: 3 });
+      const budgetCards = budgetHeadings.locator('..');
       
-      if (await budgetCards.count() > 0) {
+      if (await budgetHeadings.count() > 0) {
         await expect(budgetCards.first().getByText(/використано/i)).toBeVisible();
         await expect(budgetCards.first().getByText(/Залишилось/i)).toBeVisible();
       }
