@@ -1,0 +1,5 @@
+
+# Testing temp files
+.stryker-tmp/
+playwright-report/
+test-results/
