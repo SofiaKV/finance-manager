@@ -187,6 +187,8 @@ pnpm test:e2e:ui
 ### 5.7 Запуск мутаційного тестування:
 ```bash
 pnpm test:mutation
+# або напряму:
+npx stryker run --plugins @stryker-mutator/jest-runner
 ```
 
 ---

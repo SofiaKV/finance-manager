@@ -17,7 +17,7 @@
     "test:integration": "jest --testPathPatterns=integration",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:mutation": "stryker run"
+    "test:mutation": "npx stryker run --plugins @stryker-mutator/jest-runner"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
