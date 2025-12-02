@@ -739,7 +739,9 @@ describe('BudgetsService', () => {
 
   describe('deleteBudget', () => {
     it('повертає false, якщо бюджет не існує або не належить користувачу', async () => {
-      jest.spyOn(budgetDaoMock, 'getBudgetById').mockResolvedValueOnce(undefined);
+      jest
+        .spyOn(budgetDaoMock, 'getBudgetById')
+        .mockResolvedValueOnce(undefined);
 
       const r1 = await service.deleteBudget('b1', 'user-1');
       expect(r1).toBe(false);
