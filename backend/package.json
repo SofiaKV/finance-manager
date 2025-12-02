@@ -19,7 +19,8 @@
     "format:check": "prettier -c \"src/**/*.ts\" \"test/**/*.ts\"",
     "format:fix": "prettier -w \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint:check": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
-    "lint:fix": "eslint \"src/**/*.ts\" \"test/**/*.ts\" --fix"
+    "lint:fix": "eslint \"src/**/*.ts\" \"test/**/*.ts\" --fix",
+    "mutate": "stryker run"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -36,6 +37,9 @@
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
+    "@stryker-mutator/core": "^8.7.1",
+    "@stryker-mutator/jest-runner": "^8.7.1",
+    "@stryker-mutator/typescript-checker": "^8.7.1",
     "@types/supertest": "^6.0.2",
     "supertest": "^7.0.0",
     "tsconfig-paths": "^4.2.0"
