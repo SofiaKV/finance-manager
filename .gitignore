@@ -29,3 +29,6 @@ pnpm-debug.log*
 
 # stryker
 .stryker-tmp/
+
+# Lighthouse CI
+.lighthouseci/
