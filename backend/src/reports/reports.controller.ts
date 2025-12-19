@@ -7,12 +7,8 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ReportsService } from './reports.service';
-import {
-  DashboardSummary,
-  CategorySummary,
-  PeriodSummary,
-  TransactionType,
-} from '../types';
+import { DashboardSummary, CategorySummary, PeriodSummary } from '../types';
+import { TransactionType } from '@fm/transactions';
 
 @Controller('reports')
 export class ReportsController {

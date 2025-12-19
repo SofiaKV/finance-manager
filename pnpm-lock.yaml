@@ -70,6 +70,9 @@ importers:
 
   backend:
     dependencies:
+      '@fm/transactions':
+        specifier: workspace:*
+        version: link:../libs/transactions
       '@nestjs/common':
         specifier: ^11.0.1
         version: 11.1.6(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -222,6 +225,8 @@ importers:
       vite-tsconfig-paths:
         specifier: ^5.1.4
         version: 5.1.4(rolldown-vite@7.1.14(@types/node@22.18.8)(jiti@2.6.1)(terser@5.44.0)(yaml@2.8.1))(typescript@5.9.3)
+
+  libs/transactions: {}
 
 packages:
 

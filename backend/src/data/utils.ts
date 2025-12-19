@@ -1,4 +1,4 @@
-import { TransactionType } from '../types';
+import { TransactionType } from '@fm/transactions';
 
 export const mapEntityTransactionTypeToEnum = (
   type: string,
