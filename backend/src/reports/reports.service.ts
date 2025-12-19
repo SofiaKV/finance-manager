@@ -1,34 +1,23 @@
 import { Injectable } from '@nestjs/common';
+import { DashboardSummary, CategorySummary, PeriodSummary } from '../types';
 import {
-  DashboardSummary,
-  CategorySummary,
-  PeriodSummary,
-  TransactionType,
   TransactionFilters,
-} from '../types';
-import { TransactionDao } from '../data/transactions.data';
+  TransactionsService,
+  TransactionType,
+} from '@fm/transactions';
 
 @Injectable()
 export class ReportsService {
-  constructor(private readonly transactionDao: TransactionDao) {}
+  constructor(private readonly transactionService: TransactionsService) {}
 
   async getDashboard(
     userId: string,
-    filters: { startDate?: Date; endDate?: Date },
+    filters: TransactionFilters,
   ): Promise<DashboardSummary> {
-    let transactions =
-      await this.transactionDao.getTransactionsByUserId(userId);
-
-    if (filters.startDate) {
-      transactions = transactions.filter(
-        (txn) => new Date(txn.date) >= filters.startDate!,
-      );
-    }
-    if (filters.endDate) {
-      transactions = transactions.filter(
-        (txn) => new Date(txn.date) <= filters.endDate!,
-      );
-    }
+    const transactions = await this.transactionService.getTransactions(
+      userId,
+      filters,
+    );
 
     const totalIncome = transactions
       .filter((txn) => txn.type === TransactionType.INCOME)
@@ -76,22 +65,10 @@ export class ReportsService {
     userId: string,
     filters: TransactionFilters,
   ): Promise<CategorySummary[]> {
-    let transactions =
-      await this.transactionDao.getTransactionsByUserId(userId);
-
-    if (filters.startDate) {
-      transactions = transactions.filter(
-        (txn) => new Date(txn.date) >= filters.startDate!,
-      );
-    }
-    if (filters.endDate) {
-      transactions = transactions.filter(
-        (txn) => new Date(txn.date) <= filters.endDate!,
-      );
-    }
-    if (filters.type) {
-      transactions = transactions.filter((txn) => txn.type === filters.type);
-    }
+    const transactions = await this.transactionService.getTransactions(
+      userId,
+      filters,
+    );
 
     const totalAmount = transactions.reduce((sum, txn) => sum + txn.amount, 0);
 
@@ -119,19 +96,10 @@ export class ReportsService {
     filters: { startDate?: Date; endDate?: Date },
     groupBy: 'day' | 'week' | 'month',
   ): Promise<PeriodSummary[]> {
-    let transactions =
-      await this.transactionDao.getTransactionsByUserId(userId);
-
-    if (filters.startDate) {
-      transactions = transactions.filter(
-        (txn) => new Date(txn.date) >= filters.startDate!,
-      );
-    }
-    if (filters.endDate) {
-      transactions = transactions.filter(
-        (txn) => new Date(txn.date) <= filters.endDate!,
-      );
-    }
+    const transactions = await this.transactionService.getTransactions(
+      userId,
+      filters,
+    );
 
     const periodMap = new Map<
       string,

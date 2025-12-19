@@ -1,23 +1,29 @@
 import { Injectable } from '@nestjs/common';
-import {
+import type {
+  TransactionRepository,
   Transaction,
+  TransactionFilters,
+  TransactionType,
   CreateTransactionDto,
   UpdateTransactionDto,
-  TransactionType,
-} from '../types';
-import { Connection } from './connection.service';
-import { AccountEntity, CategoryEntity, TransactionEntity } from './types';
-import { mapEntityTransactionTypeToEnum } from './utils';
+} from '@fm/transactions';
+import { Connection } from '../../data/connection.service';
+import {
+  AccountEntity,
+  CategoryEntity,
+  TransactionEntity,
+} from '../../data/types';
+import { mapEntityTransactionTypeToEnum } from '../../data/utils';
 
 type TransactionEntityWithCategory = TransactionEntity & {
   category_name: string;
 };
 
 @Injectable()
-export class TransactionDao {
+export class TransactionRepositoryAdapter implements TransactionRepository {
   constructor(private readonly connection: Connection) {}
 
-  mapRowToTransaction(row: TransactionEntityWithCategory): Transaction {
+  private mapRow(row: TransactionEntityWithCategory): Transaction {
     return {
       id: row.id,
       userId: row.user_id,
@@ -47,22 +53,16 @@ export class TransactionDao {
     throw new Error(`Unsupported transaction type: ${type}`);
   }
 
-  async ensureCategoryId(categoryName: string): Promise<string | null> {
-    if (!categoryName) return null;
-
-    const existing = await this.connection
+  private async findCategoryId(name?: string): Promise<string | null> {
+    if (!name) return null;
+    const row = await this.connection
       .db<CategoryEntity>('categories')
-      .where({ name: categoryName })
+      .where({ name })
       .first('id');
-
-    if (existing) {
-      return existing.id;
-    }
-
-    return null;
+    return row?.id ?? null;
   }
 
-  async ensureDefaultAccountId(userId: string): Promise<string> {
+  private async ensureDefaultAccountId(userId: string): Promise<string> {
     const existing = await this.connection
       .db<AccountEntity>('accounts')
       .where({ user_id: userId, deleted_at: null })
@@ -72,7 +72,7 @@ export class TransactionDao {
     if (existing) return existing.id;
 
     const [row] = await this.connection
-      .db<AccountEntity>('accounts')
+      .db('accounts')
       .insert({
         user_id: userId,
         name: 'Основний рахунок',
@@ -84,47 +84,58 @@ export class TransactionDao {
         icon: null,
         sort_order: 0,
       })
-      .returning('id');
+      .returning<AccountEntity[]>('id');
 
     return row.id;
   }
 
-  async getTransactionsByUserId(userId: string): Promise<Transaction[]> {
-    const rows = await this.connection
+  async findMany(
+    userId: string,
+    filters: TransactionFilters = {},
+  ): Promise<Transaction[]> {
+    const q = this.connection
       .db('transactions as t')
       .leftJoin('categories as c', 't.category_id', 'c.id')
       .select<
         TransactionEntityWithCategory[]
       >('t.id', 't.user_id', 't.amount', 't.type', 't.date', 't.description', 't.created_at', 't.updated_at', this.connection.db.raw('c.name as category_name'))
       .where('t.user_id', userId)
-      .whereNull('t.deleted_at')
-      .orderBy('t.date', 'desc');
+      .whereNull('t.deleted_at');
 
-    return rows.map((row) => this.mapRowToTransaction(row));
+    if (filters.startDate)
+      q.andWhere('t.date', '>=', filters.startDate.toISOString());
+    if (filters.endDate)
+      q.andWhere('t.date', '<=', filters.endDate.toISOString());
+    if (filters.type)
+      q.andWhere('t.type', this.normalizeTransactionType(filters.type));
+    if (filters.category) q.andWhere('c.name', filters.category);
+
+    const rows = await q.orderBy('t.date', 'desc');
+    return rows.map((r) => this.mapRow(r));
   }
 
-  async getTransactionById(
-    id: string,
-    userId: string,
-  ): Promise<Transaction | null> {
+  async findById(id: string, userId: string): Promise<Transaction | null> {
     const row = await this.connection
       .db('transactions as t')
       .leftJoin('categories as c', 't.category_id', 'c.id')
-      .select('t.*', this.connection.db.raw('c.name as category_name'))
+      .select<TransactionEntityWithCategory>(
+        't.*',
+        this.connection.db.raw('c.name as category_name'),
+      )
       .where('t.id', id)
       .andWhere('t.user_id', userId)
       .whereNull('t.deleted_at')
-      .first<TransactionEntityWithCategory>();
+      .first();
 
-    return row ? this.mapRowToTransaction(row) : null;
+    return row ? this.mapRow(row) : null;
   }
 
-  async addTransaction(
+  async create(
     userId: string,
     dto: CreateTransactionDto,
   ): Promise<Transaction> {
     const accountId = await this.ensureDefaultAccountId(userId);
-    const categoryId = await this.ensureCategoryId(dto.category);
+    const categoryId = await this.findCategoryId(dto.category);
 
     const [inserted] = await this.connection
       .db<TransactionEntity>('transactions')
@@ -139,17 +150,10 @@ export class TransactionDao {
       })
       .returning('*');
 
-    const row = await this.connection
-      .db('transactions as t')
-      .leftJoin('categories as c', 't.category_id', 'c.id')
-      .select('t.*', this.connection.db.raw('c.name as category_name'))
-      .where('t.id', inserted.id)
-      .first<TransactionEntityWithCategory>();
-
-    return this.mapRowToTransaction(row);
+    return (await this.findById(inserted.id, userId))!;
   }
 
-  async updateTransaction(
+  async update(
     id: string,
     userId: string,
     dto: UpdateTransactionDto,
@@ -159,15 +163,16 @@ export class TransactionDao {
     if (dto.amount !== undefined) patch.amount = dto.amount;
     if (dto.type !== undefined)
       patch.type = this.normalizeTransactionType(dto.type);
-    if (dto.description !== undefined) patch.description = dto.description;
+    if (dto.description !== undefined)
+      patch.description = dto.description ?? null;
     if (dto.date !== undefined) patch.date = dto.date;
 
     if (dto.category !== undefined) {
-      patch.category_id = await this.ensureCategoryId(dto.category);
+      patch.category_id = await this.findCategoryId(dto.category);
     }
 
     if (Object.keys(patch).length === 0) {
-      return this.getTransactionById(id, userId);
+      return this.findById(id, userId);
     }
 
     patch.updated_at = new Date();
@@ -179,18 +184,10 @@ export class TransactionDao {
       .returning('*');
 
     if (!updated) return null;
-
-    const row = await this.connection
-      .db('transactions as t')
-      .leftJoin('categories as c', 't.category_id', 'c.id')
-      .select('t.*', this.connection.db.raw('c.name as category_name'))
-      .where('t.id', updated.id)
-      .first<TransactionEntityWithCategory>();
-
-    return row ? this.mapRowToTransaction(row) : null;
+    return this.findById(updated.id, userId);
   }
 
-  async deleteTransaction(id: string, userId: string): Promise<boolean> {
+  async softDelete(id: string, userId: string): Promise<boolean> {
     const affected = await this.connection
       .db<TransactionEntity>('transactions')
       .where({ id, user_id: userId, deleted_at: null })

@@ -1,24 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import {
-  Budget,
-  CreateBudgetDto,
-  UpdateBudgetDto,
-  TransactionType,
-} from '../types';
+import { Budget, CreateBudgetDto, UpdateBudgetDto } from '../types';
 import { BudgetDao } from '../data/budgets.data';
-import { TransactionDao } from '../data/transactions.data';
+import { TransactionsService, TransactionType } from '@fm/transactions';
 
 @Injectable()
 export class BudgetsService {
   constructor(
     private readonly budgetDao: BudgetDao,
-    private readonly transactionDao: TransactionDao,
+    private readonly transactionService: TransactionsService,
   ) {}
 
   async getBudgets(userId: string): Promise<Budget[]> {
     const budgets = await this.budgetDao.getBudgetsByUserId(userId);
-    const transactions =
-      await this.transactionDao.getTransactionsByUserId(userId);
+    const transactions = await this.transactionService.getTransactions(userId);
 
     return budgets.map((budget) => {
       const spent = transactions
@@ -41,8 +35,7 @@ export class BudgetsService {
       return null;
     }
 
-    const transactions =
-      await this.transactionDao.getTransactionsByUserId(userId);
+    const transactions = await this.transactionService.getTransactions(userId);
     const spent = transactions
       .filter(
         (txn) =>

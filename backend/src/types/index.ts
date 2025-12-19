@@ -1,3 +1,5 @@
+import { Transaction, TransactionType } from '@fm/transactions';
+
 export interface User {
   id: string;
   email: string;
@@ -12,23 +14,6 @@ export interface UserProfile {
   name: string;
   balance: number;
   createdAt: Date;
-}
-
-export enum TransactionType {
-  INCOME = 'INCOME',
-  EXPENSE = 'EXPENSE',
-}
-
-export interface Transaction {
-  id: string;
-  userId: string;
-  type: TransactionType;
-  amount: number;
-  category: string;
-  description: string;
-  date: Date;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 // Category types
@@ -82,22 +67,6 @@ export interface UpdateProfileDto {
   email?: string;
 }
 
-export interface CreateTransactionDto {
-  type: TransactionType;
-  amount: number;
-  category: string;
-  description: string;
-  date: Date;
-}
-
-export interface UpdateTransactionDto {
-  type?: TransactionType;
-  amount?: number;
-  category?: string;
-  description?: string;
-  date?: Date;
-}
-
 export interface CreateBudgetDto {
   category: string;
   amount: number;
@@ -125,14 +94,6 @@ export interface UpdateGoalDto {
   targetAmount?: number;
   currentAmount?: number;
   deadline?: Date;
-}
-
-// Filter types
-export interface TransactionFilters {
-  startDate?: Date;
-  endDate?: Date;
-  category?: string;
-  type?: TransactionType;
 }
 
 // Response types

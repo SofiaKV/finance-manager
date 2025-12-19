@@ -2,14 +2,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BudgetsService } from '../src/budgets/budgets.service';
 import { BudgetDao } from '../src/data/budgets.data';
-import { TransactionDao } from '../src/data/transactions.data';
+import { CreateBudgetDto, Budget, UpdateBudgetDto } from '../src/types';
 import {
-  TransactionType,
-  CreateBudgetDto,
-  Budget,
-  UpdateBudgetDto,
   Transaction,
-} from '../src/types';
+  TransactionsService,
+  TransactionType,
+} from '@fm/transactions';
 
 describe('BudgetsService', () => {
   let service: BudgetsService;
@@ -27,18 +25,12 @@ describe('BudgetsService', () => {
     deleteBudget: jest.fn(),
   };
 
-  const transactionDaoMock: Omit<
-    TransactionDao,
-    'connection' | 'mapRowToTransaction'
-  > = {
-    getTransactionsByUserId: jest.fn(),
-    ensureCategoryId: jest.fn(),
-    normalizeTransactionType: jest.fn(),
-    ensureDefaultAccountId: jest.fn(),
-    getTransactionById: jest.fn(),
-    addTransaction: jest.fn(),
+  const transactionServiceMock: Omit<TransactionsService, 'deps'> = {
+    getTransaction: jest.fn(),
+    getTransactions: jest.fn(),
     updateTransaction: jest.fn(),
     deleteTransaction: jest.fn(),
+    createTransaction: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -46,7 +38,7 @@ describe('BudgetsService', () => {
       providers: [
         BudgetsService,
         { provide: BudgetDao, useValue: budgetDaoMock },
-        { provide: TransactionDao, useValue: transactionDaoMock },
+        { provide: TransactionsService, useValue: transactionServiceMock },
       ],
     }).compile();
 
@@ -127,13 +119,13 @@ describe('BudgetsService', () => {
         .spyOn(budgetDaoMock, 'getBudgetsByUserId')
         .mockResolvedValueOnce(budgets);
       jest
-        .spyOn(transactionDaoMock, 'getTransactionsByUserId')
+        .spyOn(transactionServiceMock, 'getTransactions')
         .mockResolvedValueOnce(transactions);
 
       const result = await service.getBudgets(userId);
 
       expect(budgetDaoMock.getBudgetsByUserId).toHaveBeenCalledWith(userId);
-      expect(transactionDaoMock.getTransactionsByUserId).toHaveBeenCalledWith(
+      expect(transactionServiceMock.getTransactions).toHaveBeenCalledWith(
         userId,
       );
       expect(result[0].spent).toBe(200);
@@ -212,7 +204,7 @@ describe('BudgetsService', () => {
         .spyOn(budgetDaoMock, 'getBudgetsByUserId')
         .mockResolvedValueOnce(budgets);
       jest
-        .spyOn(transactionDaoMock, 'getTransactionsByUserId')
+        .spyOn(transactionServiceMock, 'getTransactions')
         .mockResolvedValueOnce(transactions);
 
       const result = await service.getBudgets(userId);
@@ -239,21 +231,19 @@ describe('BudgetsService', () => {
       };
 
       jest.spyOn(budgetDaoMock, 'getBudgetById').mockResolvedValueOnce(budget);
-      jest
-        .spyOn(transactionDaoMock, 'getTransactionsByUserId')
-        .mockResolvedValue([
-          {
-            id: 't1',
-            userId,
-            type: TransactionType.EXPENSE,
-            category: 'Food',
-            amount: 150,
-            date: new Date('2025-01-05'),
-            createdAt: new Date('2025-01-01'),
-            updatedAt: new Date('2025-01-01'),
-            description: 'Description',
-          },
-        ]);
+      jest.spyOn(transactionServiceMock, 'getTransactions').mockResolvedValue([
+        {
+          id: 't1',
+          userId,
+          type: TransactionType.EXPENSE,
+          category: 'Food',
+          amount: 150,
+          date: new Date('2025-01-05'),
+          createdAt: new Date('2025-01-01'),
+          updatedAt: new Date('2025-01-01'),
+          description: 'Description',
+        },
+      ]);
 
       const result = await service.getBudget('b1', userId);
 
@@ -343,7 +333,7 @@ describe('BudgetsService', () => {
       ];
 
       jest
-        .spyOn(transactionDaoMock, 'getTransactionsByUserId')
+        .spyOn(transactionServiceMock, 'getTransactions')
         .mockResolvedValueOnce(txs);
 
       const result = await service.getBudget('b1', userId);
@@ -369,54 +359,52 @@ describe('BudgetsService', () => {
       };
 
       jest.spyOn(budgetDaoMock, 'getBudgetById').mockResolvedValueOnce(budget);
-      jest
-        .spyOn(transactionDaoMock, 'getTransactionsByUserId')
-        .mockResolvedValue([
-          {
-            id: 't1',
-            userId,
-            type: TransactionType.EXPENSE,
-            category: 'Food',
-            amount: 10,
-            date: new Date('2025-01-10'),
-            createdAt: new Date('2025-01-01'),
-            updatedAt: new Date('2025-01-01'),
-            description: 'Description',
-          },
-          {
-            id: 't2',
-            userId,
-            type: TransactionType.EXPENSE,
-            category: 'Food',
-            amount: 20,
-            date: new Date('2025-01-20'),
-            createdAt: new Date('2025-01-01'),
-            updatedAt: new Date('2025-01-01'),
-            description: 'Description',
-          },
-          {
-            id: 't3',
-            userId,
-            type: TransactionType.EXPENSE,
-            category: 'Food',
-            amount: 999,
-            date: new Date('2025-01-09'),
-            createdAt: new Date('2025-01-01'),
-            updatedAt: new Date('2025-01-01'),
-            description: 'Description',
-          },
-          {
-            id: 't4',
-            userId,
-            type: TransactionType.EXPENSE,
-            category: 'Food',
-            amount: 999,
-            date: new Date('2025-01-21'),
-            createdAt: new Date('2025-01-01'),
-            updatedAt: new Date('2025-01-01'),
-            description: 'Description',
-          },
-        ]);
+      jest.spyOn(transactionServiceMock, 'getTransactions').mockResolvedValue([
+        {
+          id: 't1',
+          userId,
+          type: TransactionType.EXPENSE,
+          category: 'Food',
+          amount: 10,
+          date: new Date('2025-01-10'),
+          createdAt: new Date('2025-01-01'),
+          updatedAt: new Date('2025-01-01'),
+          description: 'Description',
+        },
+        {
+          id: 't2',
+          userId,
+          type: TransactionType.EXPENSE,
+          category: 'Food',
+          amount: 20,
+          date: new Date('2025-01-20'),
+          createdAt: new Date('2025-01-01'),
+          updatedAt: new Date('2025-01-01'),
+          description: 'Description',
+        },
+        {
+          id: 't3',
+          userId,
+          type: TransactionType.EXPENSE,
+          category: 'Food',
+          amount: 999,
+          date: new Date('2025-01-09'),
+          createdAt: new Date('2025-01-01'),
+          updatedAt: new Date('2025-01-01'),
+          description: 'Description',
+        },
+        {
+          id: 't4',
+          userId,
+          type: TransactionType.EXPENSE,
+          category: 'Food',
+          amount: 999,
+          date: new Date('2025-01-21'),
+          createdAt: new Date('2025-01-01'),
+          updatedAt: new Date('2025-01-01'),
+          description: 'Description',
+        },
+      ]);
 
       const result = await service.getBudget('b1', userId);
 

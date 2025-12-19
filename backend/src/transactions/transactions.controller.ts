@@ -11,13 +11,14 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { TransactionsService } from './transactions.service';
-import {
+
+import { TransactionsService } from '@fm/transactions';
+import type {
   Transaction,
   CreateTransactionDto,
   UpdateTransactionDto,
   TransactionType,
-} from '../types';
+} from '@fm/transactions';
 
 @Controller('transactions')
 export class TransactionsController {
@@ -33,14 +34,12 @@ export class TransactionsController {
   ): Promise<Transaction[]> {
     const userId = this.extractUserId(authorization);
 
-    const filters = {
+    return this.transactionsService.getTransactions(userId, {
       startDate: startDate ? new Date(startDate) : undefined,
       endDate: endDate ? new Date(endDate) : undefined,
       category,
       type,
-    };
-
-    return this.transactionsService.getTransactions(userId, filters);
+    });
   }
 
   @Get(':id')
@@ -121,6 +120,7 @@ export class TransactionsController {
       throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
     }
 
+    // ⚠️ як у тебе: тут повертається token-string
     return token;
   }
 }

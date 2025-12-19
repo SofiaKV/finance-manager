@@ -6,10 +6,9 @@ import {
   AuthResponse,
   UserProfile,
   User,
-  TransactionType,
 } from '../types';
 import { UserDao } from '../data/users.data';
-import { TransactionDao } from '../data/transactions.data';
+import { TransactionsService, TransactionType } from '@fm/transactions';
 
 @Injectable()
 export class AuthService {
@@ -18,7 +17,7 @@ export class AuthService {
 
   constructor(
     private readonly userDao: UserDao,
-    private readonly transactionDao: TransactionDao,
+    private readonly transactionService: TransactionsService,
   ) {}
 
   private validateEmail(email: string): boolean {
@@ -117,9 +116,7 @@ export class AuthService {
   }
 
   private async createUserProfile(user: User): Promise<UserProfile> {
-    const transactions = await this.transactionDao.getTransactionsByUserId(
-      user.id,
-    );
+    const transactions = await this.transactionService.getTransactions(user.id);
 
     const balance = transactions.reduce((sum, txn) => {
       return txn.type === TransactionType.INCOME

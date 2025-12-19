@@ -1,0 +1,21 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+
+    "emitDecoratorMetadata": false,
+    "experimentalDecorators": false,
+
+    "composite": false
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["dist", "node_modules", "**/*.spec.ts", "**/*.test.ts"]
+}
